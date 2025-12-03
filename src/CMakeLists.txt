@@ -1,5 +1,5 @@
 add_executable(warehouse_backend
-    main/main.cpp
+    main/test_database.cpp
 
     # config
     config/ApplicationConfig.cpp
@@ -9,6 +9,10 @@ add_executable(warehouse_backend
     utils/DateUtils.cpp
     utils/JsonUtils.cpp
     utils/Validator.cpp
+
+    # database
+    database/DatabaseConnection.cpp
+    database/ConnectionPool.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -16,6 +20,7 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/main
         ${CMAKE_CURRENT_SOURCE_DIR}/config
+        ${CMAKE_CURRENT_SOURCE_DIR}/database
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
@@ -30,6 +35,8 @@ target_link_libraries(warehouse_backend
         Poco::Util 
         Poco::Net 
         Poco::JSON
+        Poco::Data
+        Poco::DataPostgreSQL
         ${PostgreSQL_LIBRARIES}
         pthread
         dl

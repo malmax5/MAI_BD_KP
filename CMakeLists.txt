@@ -17,18 +17,32 @@ else()
     add_definitions(-DNDEBUG=1)
 endif()
 
+find_package(PostgreSQL REQUIRED)
+
+if(PostgreSQL_FOUND AND NOT TARGET PostgreSQL::client)
+    if(TARGET PostgreSQL::libpq)
+        add_library(PostgreSQL::client ALIAS PostgreSQL::libpq)
+    else()
+        add_library(PostgreSQL::client UNKNOWN IMPORTED)
+        set_target_properties(PostgreSQL::client PROPERTIES
+            IMPORTED_LOCATION "${PostgreSQL_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${PostgreSQL_INCLUDE_DIRS}"
+        )
+    endif()
+endif()
+
 find_package(Poco REQUIRED COMPONENTS 
     Foundation 
     Util 
     Net 
     JSON
+    Data
+    DataPostgreSQL
 )
 
 if(Poco_VERSION VERSION_LESS 1.10.0)
     message(WARNING "POCO version ${Poco_VERSION} is older than recommended 1.10.0")
 endif()
-
-find_package(PostgreSQL REQUIRED)
 
 add_subdirectory(src)
 
