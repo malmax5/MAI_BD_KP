@@ -1,5 +1,5 @@
 add_executable(warehouse_backend
-    main/test_database.cpp
+    main/test_main.cpp
 
     # config
     config/ApplicationConfig.cpp
@@ -13,6 +13,19 @@ add_executable(warehouse_backend
     # database
     database/DatabaseConnection.cpp
     database/ConnectionPool.cpp
+    #database/models
+    database/models/User.cpp
+    database/models/Supplier.cpp
+    database/models/Category.cpp
+    database/models/Product.cpp
+    database/models/WarehouseCell.cpp
+    database/models/ProductBatch.cpp
+    database/models/CustomerOrder.cpp
+    database/models/OrderItem.cpp
+    database/models/Shipment.cpp
+    database/models/InventoryMovement.cpp
+    database/models/AuditLog.cpp
+    database/models/OrderPayment.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -21,6 +34,7 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_SOURCE_DIR}/main
         ${CMAKE_CURRENT_SOURCE_DIR}/config
         ${CMAKE_CURRENT_SOURCE_DIR}/database
+        ${CMAKE_CURRENT_SOURCE_DIR}/database/models
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
