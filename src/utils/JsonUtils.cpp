@@ -103,9 +103,45 @@ int JsonUtils::getValue<int>(const Poco::JSON::Object& obj,
     return defaultValue;
 }
 
-// Явные инстанцирования для других типов
-template double JsonUtils::getValue<double>(const Poco::JSON::Object&, const std::string&, const double&);
-template bool JsonUtils::getValue<bool>(const Poco::JSON::Object&, const std::string&, const bool&);
+template<>
+double JsonUtils::getValue<double>(const Poco::JSON::Object& obj, 
+                                    const std::string& key, 
+                                    const double& defaultValue)
+{
+    if (obj.has(key))
+    {
+        try
+        {
+            return obj.getValue<int>(key);
+        }
+        catch (...)
+        {
+            return defaultValue;
+        }
+    }
+    
+    return defaultValue;
+}
+
+template<>
+bool JsonUtils::getValue<bool>(const Poco::JSON::Object& obj, 
+                                const std::string& key, 
+                                const bool& defaultValue)
+{
+    if (obj.has(key))
+    {
+        try
+        {
+            return obj.getValue<int>(key);
+        }
+        catch (...)
+        {
+            return defaultValue;
+        }
+    }
+    
+    return defaultValue;
+}
 
 std::string JsonUtils::getString(const Poco::JSON::Object& obj, const std::string& key, 
                                   const std::string& defaultValue)
