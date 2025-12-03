@@ -1,11 +1,22 @@
 add_executable(warehouse_backend
     main/main.cpp
+
+    # config
+    config/ApplicationConfig.cpp
+    config/ConfigManager.cpp
+
+    # utils
+    utils/DateUtils.cpp
+    utils/JsonUtils.cpp
+    utils/Validator.cpp
 )
 
 target_include_directories(warehouse_backend
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/main
+        ${CMAKE_CURRENT_SOURCE_DIR}/config
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/config

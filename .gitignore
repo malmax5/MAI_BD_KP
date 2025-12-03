@@ -12,6 +12,8 @@ bin/
 
 # Сгенерированные файлы
 save.txt
+FilesInText.txt
+file.sh
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
