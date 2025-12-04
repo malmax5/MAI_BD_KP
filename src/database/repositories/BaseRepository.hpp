@@ -49,14 +49,9 @@ public:
 protected:
     ConnectionPool& pool;
     
-    std::unique_ptr<DatabaseConnection> acquireConnection()
+    std::shared_ptr<DatabaseConnection> acquireConnection()
     {
         return pool.acquireConnection();
-    }
-    
-    void releaseConnection(std::unique_ptr<DatabaseConnection> connection)
-    {
-        pool.releaseConnection(std::move(connection));
     }
     
     void beginTransaction(DatabaseConnection& connection)
