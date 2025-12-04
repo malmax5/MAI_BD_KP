@@ -43,8 +43,7 @@ public:
     void initialize(const ConnectionConfig& connConfig, const PoolConfig& poolConfig);
     void shutdown();
     
-    std::unique_ptr<DatabaseConnection> acquireConnection();
-    void releaseConnection(std::unique_ptr<DatabaseConnection> connection);
+    std::shared_ptr<DatabaseConnection> acquireConnection();
     
     size_t getActiveConnections() const;
     size_t getIdleConnections() const;
@@ -65,7 +64,7 @@ private:
     
     void createInitialConnections();
     std::unique_ptr<DatabaseConnection> createNewConnection();
-    void cleanupIdleConnections();
+    void releaseConnection(size_t index);
     void maintenanceThread();
     
     struct PooledConnection

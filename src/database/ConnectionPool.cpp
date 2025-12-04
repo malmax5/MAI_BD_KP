@@ -86,6 +86,8 @@ void ConnectionPool::shutdown()
         shutdownRequested = true;
         initialized = false;
         
+        connectionAvailable.notify_all();
+        
         while (!availableIndices.empty())
         {
             availableIndices.pop();
@@ -93,7 +95,7 @@ void ConnectionPool::shutdown()
         
         for (auto& pooledConn : connections)
         {
-            if (pooledConn.connection && pooledConn.connection->isConnected())
+            if (pooledConn.connection)
             {
                 try
                 {
@@ -101,7 +103,7 @@ void ConnectionPool::shutdown()
                 }
                 catch (...)
                 {
-
+                    
                 }
             }
         }
@@ -109,8 +111,6 @@ void ConnectionPool::shutdown()
         connections.clear();
         activeConnections = 0;
     }
-    
-    connectionAvailable.notify_all();
     
     if (maintenanceThreadHandle.joinable())
     {
@@ -156,7 +156,7 @@ std::unique_ptr<DatabaseConnection> ConnectionPool::createNewConnection()
     return connection;
 }
 
-std::unique_ptr<DatabaseConnection> ConnectionPool::acquireConnection()
+std::shared_ptr<DatabaseConnection> ConnectionPool::acquireConnection()
 {
     std::unique_lock<std::mutex> lock(poolMutex);
     
@@ -185,6 +185,7 @@ std::unique_ptr<DatabaseConnection> ConnectionPool::acquireConnection()
                         pooledConn.connection->disconnect();
                         pooledConn.connection = createNewConnection();
                         pooledConn.createdAt = std::chrono::steady_clock::now();
+                        pooledConn.lastUsedAt = pooledConn.createdAt;
                     }
                     catch (...)
                     {
@@ -221,11 +222,14 @@ std::unique_ptr<DatabaseConnection> ConnectionPool::acquireConnection()
                 pooledConn.lastUsedAt = std::chrono::steady_clock::now();
                 activeConnections++;
                 
-                return std::move(pooledConn.connection);
-            }
-            else
-            {
-                continue;
+                auto deleter = [this, index](DatabaseConnection* conn) {
+                    this->releaseConnection(index);
+                };
+                
+                return std::shared_ptr<DatabaseConnection>(
+                    pooledConn.connection.get(), 
+                    deleter
+                );
             }
         }
         
@@ -234,16 +238,25 @@ std::unique_ptr<DatabaseConnection> ConnectionPool::acquireConnection()
             try
             {
                 auto newConn = createNewConnection();
-                connections.emplace_back(std::move(newConn));
-                size_t index = connections.size() - 1;
+                size_t index = connections.size();
                 
-                PooledConnection& pooledConn = connections[index];
+                connections.emplace_back(std::move(newConn));
+                PooledConnection& pooledConn = connections.back();
+                
                 pooledConn.inUse = true;
-                pooledConn.lastUsedAt = std::chrono::steady_clock::now();
+                pooledConn.createdAt = std::chrono::steady_clock::now();
+                pooledConn.lastUsedAt = pooledConn.createdAt;
                 activeConnections++;
                 totalConnectionsCreated++;
                 
-                return std::move(pooledConn.connection);
+                auto deleter = [this, index](DatabaseConnection* conn) {
+                    this->releaseConnection(index);
+                };
+                
+                return std::shared_ptr<DatabaseConnection>(
+                    pooledConn.connection.get(),
+                    deleter
+                );
             }
             catch (const std::exception& e)
             {
@@ -262,45 +275,32 @@ std::unique_ptr<DatabaseConnection> ConnectionPool::acquireConnection()
                             poolConfig.connectionTimeout.count()));
         }
         
-        if (connectionAvailable.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
-        {
-            continue;
-        }
+        connectionAvailable.wait_for(lock, std::chrono::seconds(1));
     }
 }
 
-void ConnectionPool::releaseConnection(std::unique_ptr<DatabaseConnection> connection)
+void ConnectionPool::releaseConnection(size_t index)
 {
     std::lock_guard<std::mutex> lock(poolMutex);
     
-    if (!initialized)
+    if (!initialized || index >= connections.size())
     {
-        if (connection)
-        {
-            connection->disconnect();
-        }
         return;
     }
     
-    for (size_t i = 0; i < connections.size(); ++i)
+    auto& pooledConn = connections[index];
+    
+    if (!pooledConn.inUse)
     {
-        if (connections[i].inUse && !connections[i].connection)
-        {
-            connections[i].connection = std::move(connection);
-            connections[i].inUse = false;
-            connections[i].lastUsedAt = std::chrono::steady_clock::now();
-            availableIndices.push(i);
-            activeConnections--;
-            
-            connectionAvailable.notify_one();
-            return;
-        }
+        return;
     }
     
-    if (connection)
-    {
-        connection->disconnect();
-    }
+    pooledConn.inUse = false;
+    pooledConn.lastUsedAt = std::chrono::steady_clock::now();
+    activeConnections--;
+    
+    availableIndices.push(index);
+    connectionAvailable.notify_one();
 }
 
 size_t ConnectionPool::getActiveConnections() const
@@ -348,9 +348,42 @@ void ConnectionPool::validateConnections()
     {
         auto& pooledConn = connections[i];
         
-        if (!pooledConn.inUse && pooledConn.connection)
+        if (pooledConn.inUse)
         {
-            if (pooledConn.isExpired(poolConfig.connectionLifetime))
+            continue;
+        }
+        
+        if (!pooledConn.connection)
+        {
+            connections.erase(connections.begin() + i);
+            i--;
+            continue;
+        }
+        
+        if (pooledConn.isExpired(poolConfig.connectionLifetime))
+        {
+            try
+            {
+                pooledConn.connection->disconnect();
+            }
+            catch (...)
+            {
+
+            }
+            
+            connections.erase(connections.begin() + i);
+            i--;
+            continue;
+        }
+        
+        if (pooledConn.needsValidation(poolConfig.validationInterval))
+        {
+            try
+            {
+                pooledConn.connection->ping();
+                pooledConn.lastUsedAt = std::chrono::steady_clock::now();
+            }
+            catch (...)
             {
                 try
                 {
@@ -361,54 +394,8 @@ void ConnectionPool::validateConnections()
 
                 }
                 
-                std::queue<size_t> newQueue;
-                while (!availableIndices.empty())
-                {
-                    size_t idx = availableIndices.front();
-                    availableIndices.pop();
-                    if (idx != i)
-                    {
-                        newQueue.push(idx);
-                    }
-                }
-                availableIndices = std::move(newQueue);
-                
                 connections.erase(connections.begin() + i);
                 i--;
-            }
-            else if (pooledConn.needsValidation(poolConfig.validationInterval))
-            {
-                try
-                {
-                    pooledConn.connection->ping();
-                    pooledConn.lastUsedAt = std::chrono::steady_clock::now();
-                }
-                catch (...)
-                {
-                    try
-                    {
-                        pooledConn.connection->disconnect();
-                    }
-                    catch (...)
-                    {
-
-                    }
-                    
-                    std::queue<size_t> newQueue;
-                    while (!availableIndices.empty())
-                    {
-                        size_t idx = availableIndices.front();
-                        availableIndices.pop();
-                        if (idx != i)
-                        {
-                            newQueue.push(idx);
-                        }
-                    }
-                    availableIndices = std::move(newQueue);
-                    
-                    connections.erase(connections.begin() + i);
-                    i--;
-                }
             }
         }
     }
@@ -429,6 +416,16 @@ void ConnectionPool::validateConnections()
             break;
         }
     }
+    
+    std::queue<size_t> newQueue;
+    for (size_t i = 0; i < connections.size(); ++i)
+    {
+        if (!connections[i].inUse && connections[i].connection)
+        {
+            newQueue.push(i);
+        }
+    }
+    availableIndices = std::move(newQueue);
 }
 
 void ConnectionPool::maintenanceThread()
