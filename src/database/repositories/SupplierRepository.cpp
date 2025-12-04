@@ -30,7 +30,7 @@ std::unique_ptr<models::Supplier> SupplierRepository::findById(long long id)
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
         Statement select(connection->getSession());
-        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.id = ?",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.id = $1",
             use(pocoId),
             now;
         
@@ -101,7 +101,7 @@ std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findPaginated
         int usePageSize = pageSize;
         int useOffset = offset;
         Statement select(connection->getSession());
-        select << "SELECT s.* FROM " + TABLE_NAME + " s ORDER BY s.name LIMIT ? OFFSET ?",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s ORDER BY s.name LIMIT $1 OFFSET $2",
             use(usePageSize),
             use(useOffset),
             now;
@@ -152,7 +152,7 @@ long long SupplierRepository::create(const models::Supplier& supplier)
         
         insert << "INSERT INTO " + TABLE_NAME + " (name, contact_person, email, phone, address, "
                << "tax_id, payment_terms, rating, created_at, is_active) "
-               << "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+               << "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
             use(name),
             use(contactPerson),
             use(email),
@@ -203,9 +203,9 @@ bool SupplierRepository::update(long long id, const models::Supplier& supplier)
         
         Statement updateStmt(connection->getSession());
         updateStmt << "UPDATE " + TABLE_NAME + " SET "
-                   << "name = ?, contact_person = ?, email = ?, phone = ?, address = ?, "
-                   << "tax_id = ?, payment_terms = ?, rating = ?, is_active = ? "
-                   << "WHERE id = ?",
+                   << "name = $1, contact_person = $2, email = $3, phone = $4, address = $5, "
+                   << "tax_id = $6, payment_terms = $7, rating = $8, is_active = $9 "
+                   << "WHERE id = $10",
             use(name),
             use(contactPerson),
             use(email),
@@ -245,9 +245,8 @@ bool SupplierRepository::remove(long long id)
         connection->beginTransaction();
         
         Statement deleteStmt(connection->getSession());
-        deleteStmt << "DELETE FROM " + TABLE_NAME + " WHERE id = ?",
-            use(pocoId),
-            now;
+        deleteStmt << "DELETE FROM " + TABLE_NAME + " WHERE id = $1",
+            use(pocoId);
         
         int rowsAffected = deleteStmt.execute();
         
@@ -276,7 +275,7 @@ bool SupplierRepository::softDelete(long long id)
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = false WHERE id = ?",
+        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = false WHERE id = $1",
             use(pocoId),
             now;
         
@@ -352,7 +351,7 @@ std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findByField(
     
     try
     {
-        std::string sql = "SELECT s.* FROM " + TABLE_NAME + " s WHERE " + fieldName + " = ? ORDER BY s.name";
+        std::string sql = "SELECT s.* FROM " + TABLE_NAME + " s WHERE " + fieldName + " = $1 ORDER BY s.name";
         
         std::string useFieldValue = fieldValue;  // Создаем неконстантную копию
         Statement select(connection->getSession());
@@ -399,7 +398,7 @@ std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::search(
         for (size_t i = 0; i < fields.size(); ++i)
         {
             if (i > 0) sql += " OR ";
-            sql += fields[i] + " ILIKE ?";
+            sql += fields[i] + " ILIKE $1";
         }
         
         sql += " ORDER BY s.name";
@@ -507,7 +506,7 @@ std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findSuppliers
         double useMinRating = minRating;
         double useMaxRating = maxRating;
         Statement select(connection->getSession());
-        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.rating >= ? AND s.rating <= ? ORDER BY s.rating DESC",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.rating >= $1 AND s.rating <= $2 ORDER BY s.rating DESC",
             use(useMinRating),
             use(useMaxRating),
             now;
@@ -578,7 +577,7 @@ bool SupplierRepository::updateRating(long long id, double newRating)
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET rating = ? WHERE id = ?",
+        updateStmt << "UPDATE " + TABLE_NAME + " SET rating = $1 WHERE id = $2",
             use(useNewRating),
             use(pocoId),
             now;
@@ -612,7 +611,7 @@ bool SupplierRepository::updateStatus(long long id, bool isActive)
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = ? WHERE id = ?",
+        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = $1 WHERE id = $2",
             use(useIsActive),
             use(pocoId),
             now;
@@ -649,7 +648,7 @@ bool SupplierRepository::updateContactInfo(long long id, const std::string& cont
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET contact_person = ?, email = ?, phone = ? WHERE id = ?",
+        updateStmt << "UPDATE " + TABLE_NAME + " SET contact_person = $1, email = $2, phone = $3 WHERE id = $4",
             use(contactPersonCopy),
             use(emailCopy),
             use(phoneCopy),
