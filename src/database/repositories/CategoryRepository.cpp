@@ -247,8 +247,7 @@ bool CategoryRepository::update(long long id, const models::Category& category)
                 Poco::Data::Keywords::use(descriptionCopy),
                 Poco::Data::Keywords::use(parentIdCopy),
                 Poco::Data::Keywords::use(sortOrderCopy),
-                Poco::Data::Keywords::use(id),
-                now;
+                Poco::Data::Keywords::use(id);
         }
         else
         {
@@ -257,8 +256,7 @@ bool CategoryRepository::update(long long id, const models::Category& category)
                 Poco::Data::Keywords::use(nameCopy),
                 Poco::Data::Keywords::use(descriptionCopy),
                 Poco::Data::Keywords::use(sortOrderCopy),
-                Poco::Data::Keywords::use(id),
-                now;
+                Poco::Data::Keywords::use(id);
         }
         
         int rowsAffected = update.execute();
@@ -340,8 +338,7 @@ bool CategoryRepository::remove(long long id)
             oss << ")";
             
             Poco::Data::Statement del(connection->getSession());
-            del << oss.str(),
-                now;
+            del << oss.str();
             
             int rowsAffected = del.execute();
         }
