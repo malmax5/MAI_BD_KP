@@ -26,6 +26,12 @@ add_executable(warehouse_backend
     database/models/InventoryMovement.cpp
     database/models/AuditLog.cpp
     database/models/OrderPayment.cpp
+    #database/repositories
+    database/repositories/BaseRepository.cpp
+    database/repositories/UserRepository.cpp
+    database/repositories/SupplierRepository.cpp
+    database/repositories/CategoryRepository.cpp
+    database/repositories/ProductRepository.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -35,6 +41,7 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_SOURCE_DIR}/config
         ${CMAKE_CURRENT_SOURCE_DIR}/database
         ${CMAKE_CURRENT_SOURCE_DIR}/database/models
+        ${CMAKE_CURRENT_SOURCE_DIR}/database/repositories
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}

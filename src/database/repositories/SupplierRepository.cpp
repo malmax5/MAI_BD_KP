@@ -1,5 +1,5 @@
-#include "UserRepository.hpp"
-#include "../models/User.hpp"
+#include "SupplierRepository.hpp"
+#include "../models/Supplier.hpp"
 #include <Poco/Data/RecordSet.h>
 #include <Poco/Data/Row.h>
 #include <Poco/DateTime.h>
@@ -15,15 +15,14 @@ using namespace Poco;
 namespace warehouse_backend::database::repositories
 {
 
-const std::string UserRepository::TABLE_NAME = "users";
-const std::vector<std::string> UserRepository::SEARCH_FIELDS = {"username", "full_name", "email"};
+const std::string SupplierRepository::TABLE_NAME = "suppliers";
+const std::vector<std::string> SupplierRepository::SEARCH_FIELDS = {"name", "contact_person", "email", "tax_id"};
 
-UserRepository::UserRepository() : BaseRepository<models::User>()
+SupplierRepository::SupplierRepository() : BaseRepository<models::Supplier>()
 {
-
 }
 
-std::unique_ptr<models::User> UserRepository::findById(long long id)
+std::unique_ptr<models::Supplier> SupplierRepository::findById(long long id)
 {
     auto connection = acquireConnection();
     
@@ -31,7 +30,7 @@ std::unique_ptr<models::User> UserRepository::findById(long long id)
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
         Statement select(connection->getSession());
-        select << "SELECT u.* FROM " + TABLE_NAME + " u WHERE u.id = $1",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.id = ?",
             use(pocoId),
             now;
         
@@ -43,9 +42,9 @@ std::unique_ptr<models::User> UserRepository::findById(long long id)
         }
         
         Row row = rs.row(0);
-        auto user = std::make_unique<models::User>(mapRowToUser(row));
+        auto supplier = std::make_unique<models::Supplier>(mapRowToSupplier(row));
         
-        return user;
+        return supplier;
     }
     catch (const Poco::Exception& e)
     {
@@ -57,26 +56,26 @@ std::unique_ptr<models::User> UserRepository::findById(long long id)
     }
 }
 
-std::vector<std::unique_ptr<models::User>> UserRepository::findAll()
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findAll()
 {
     auto connection = acquireConnection();
     
     try
     {
         Statement select(connection->getSession());
-        select << "SELECT u.* FROM " + TABLE_NAME + " u ORDER BY u.id",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s ORDER BY s.name",
             now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -88,7 +87,7 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findAll()
     }
 }
 
-std::vector<std::unique_ptr<models::User>> UserRepository::findPaginated(int page, int pageSize)
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findPaginated(int page, int pageSize)
 {
     if (page < 1) page = 1;
     if (pageSize < 1) pageSize = 10;
@@ -102,21 +101,21 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findPaginated(int pag
         int usePageSize = pageSize;
         int useOffset = offset;
         Statement select(connection->getSession());
-        select << "SELECT u.* FROM " + TABLE_NAME + " u ORDER BY u.id LIMIT $1 OFFSET $2",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s ORDER BY s.name LIMIT ? OFFSET ?",
             use(usePageSize),
             use(useOffset),
             now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -128,51 +127,42 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findPaginated(int pag
     }
 }
 
-long long UserRepository::create(const models::User& user)
+long long SupplierRepository::create(const models::Supplier& supplier)
 {
     auto connection = acquireConnection();
-
+    
     try
     {
-        std::string username = user.username;
-        std::string passwordHash = user.passwordHash;
-        std::string fullName = user.fullName;
-        std::string email = user.email;
-        std::string roleStr = models::User::roleToString(user.role);
-        bool isActive = user.isActive;
-        std::string phoneNumber = user.phoneNumber;
-        
-        {
-            Statement check(connection->getSession());
-            check << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE username = $1 OR email = $2",
-                use(username),
-                use(email),
-                now;
-            
-            RecordSet rs(check);
-            int count = rs.row(0)[0].convert<int>();
-            
-            if (count > 0)
-            {
-                throw database::DatabaseException("Username or email already exists", 
-                    database::DatabaseException::ErrorCode::QUERY_FAILED);
-            }
-        }
+        // Создаем локальные переменные для всех параметров
+        std::string name = supplier.name;
+        std::string contactPerson = supplier.contactPerson;
+        std::string email = supplier.email;
+        std::string phone = supplier.phone;
+        std::string address = supplier.address;
+        std::string taxId = supplier.taxId;
+        std::string paymentTerms = supplier.paymentTerms;
+        double rating = supplier.rating;
+        std::string createdAt = supplier.createdAt;
+        bool isActive = supplier.isActive;
         
         connection->beginTransaction();
         
         Statement insert(connection->getSession());
         Poco::Int64 id = 0;
         
-        insert << "INSERT INTO " + TABLE_NAME + " (username, password_hash, full_name, email, role, is_active, phone_number) "
-               << "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-            use(username),
-            use(passwordHash),
-            use(fullName),
+        insert << "INSERT INTO " + TABLE_NAME + " (name, contact_person, email, phone, address, "
+               << "tax_id, payment_terms, rating, created_at, is_active) "
+               << "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+            use(name),
+            use(contactPerson),
             use(email),
-            use(roleStr),
+            use(phone),
+            use(address),
+            use(taxId),
+            use(paymentTerms),
+            use(rating),
+            use(createdAt),
             use(isActive),
-            use(phoneNumber),
             into(id),
             now;
         
@@ -191,66 +181,40 @@ long long UserRepository::create(const models::User& user)
     }
 }
 
-bool UserRepository::update(long long id, const models::User& user)
+bool SupplierRepository::update(long long id, const models::Supplier& supplier)
 {
     auto connection = acquireConnection();
     
     try
     {
-        std::string username = user.username;
-        std::string passwordHash = user.passwordHash;
-        std::string fullName = user.fullName;
-        std::string email = user.email;
-        std::string roleStr = models::User::roleToString(user.role);
-        bool isActive = user.isActive;
-        std::string phoneNumber = user.phoneNumber;
+        // Создаем локальные переменные
+        std::string name = supplier.name;
+        std::string contactPerson = supplier.contactPerson;
+        std::string email = supplier.email;
+        std::string phone = supplier.phone;
+        std::string address = supplier.address;
+        std::string taxId = supplier.taxId;
+        std::string paymentTerms = supplier.paymentTerms;
+        double rating = supplier.rating;
+        bool isActive = supplier.isActive;
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        
-        {
-            Statement check(connection->getSession());
-            check << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE id = $1",
-                use(pocoId),
-                now;
-            
-            RecordSet rs(check);
-            int count = rs.row(0)[0].convert<int>();
-            
-            if (count == 0)
-            {
-                return false;
-            }
-        }
-        
-        {
-            Statement check(connection->getSession());
-            check << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE (username = $1 OR email = $2) AND id != $3",
-                use(username),
-                use(email),
-                use(pocoId),
-                now;
-            
-            RecordSet rs(check);
-            int count = rs.row(0)[0].convert<int>();
-            
-            if (count > 0)
-            {
-                throw database::DatabaseException("Username or email already exists for another user", 
-                    database::DatabaseException::ErrorCode::QUERY_FAILED);
-            }
-        }
         
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET username = $1, password_hash = $2, full_name = $3, "
-                   << "email = $4, role = $5, is_active = $6, phone_number = $7 WHERE id = $8",
-            use(username),
-            use(passwordHash),
-            use(fullName),
+        updateStmt << "UPDATE " + TABLE_NAME + " SET "
+                   << "name = ?, contact_person = ?, email = ?, phone = ?, address = ?, "
+                   << "tax_id = ?, payment_terms = ?, rating = ?, is_active = ? "
+                   << "WHERE id = ?",
+            use(name),
+            use(contactPerson),
             use(email),
-            use(roleStr),
+            use(phone),
+            use(address),
+            use(taxId),
+            use(paymentTerms),
+            use(rating),
             use(isActive),
-            use(phoneNumber),
             use(pocoId),
             now;
         
@@ -271,7 +235,7 @@ bool UserRepository::update(long long id, const models::User& user)
     }
 }
 
-bool UserRepository::remove(long long id)
+bool SupplierRepository::remove(long long id)
 {
     auto connection = acquireConnection();
     
@@ -281,11 +245,12 @@ bool UserRepository::remove(long long id)
         connection->beginTransaction();
         
         Statement deleteStmt(connection->getSession());
-        deleteStmt << "DELETE FROM " + TABLE_NAME + " WHERE id = $1",
-            use(pocoId);
+        deleteStmt << "DELETE FROM " + TABLE_NAME + " WHERE id = ?",
+            use(pocoId),
+            now;
         
         int rowsAffected = deleteStmt.execute();
-
+        
         connection->commitTransaction();
         return rowsAffected > 0;
     }
@@ -301,7 +266,7 @@ bool UserRepository::remove(long long id)
     }
 }
 
-bool UserRepository::softDelete(long long id)
+bool SupplierRepository::softDelete(long long id)
 {
     auto connection = acquireConnection();
     
@@ -311,7 +276,7 @@ bool UserRepository::softDelete(long long id)
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = false WHERE id = $1",
+        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = false WHERE id = ?",
             use(pocoId),
             now;
         
@@ -332,7 +297,7 @@ bool UserRepository::softDelete(long long id)
     }
 }
 
-int UserRepository::count()
+int SupplierRepository::count()
 {
     auto connection = acquireConnection();
     
@@ -355,55 +320,56 @@ int UserRepository::count()
     }
 }
 
-Poco::JSON::Array UserRepository::findAllAsJson()
+Poco::JSON::Array SupplierRepository::findAllAsJson()
 {
-    auto users = findAll();
+    auto suppliers = findAll();
     Poco::JSON::Array jsonArray;
     
-    for (const auto& user : users)
+    for (const auto& supplier : suppliers)
     {
-        jsonArray.add(user->toJson());
+        jsonArray.add(supplier->toJson());
     }
     
     return jsonArray;
 }
 
-Poco::JSON::Object UserRepository::findByIdAsJson(long long id)
+Poco::JSON::Object SupplierRepository::findByIdAsJson(long long id)
 {
-    auto user = findById(id);
+    auto supplier = findById(id);
     
-    if (!user)
+    if (!supplier)
     {
-        throw database::DatabaseException("User not found", database::DatabaseException::ErrorCode::QUERY_FAILED);
+        throw database::DatabaseException("Supplier not found", database::DatabaseException::ErrorCode::QUERY_FAILED);
     }
     
-    return user->toJson();
+    return supplier->toJson();
 }
 
-std::vector<std::unique_ptr<models::User>> UserRepository::findByField(const std::string& fieldName, const std::string& fieldValue)
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findByField(
+    const std::string& fieldName, const std::string& fieldValue)
 {
     auto connection = acquireConnection();
     
     try
     {
-        std::string sql = "SELECT u.* FROM " + TABLE_NAME + " u WHERE " + fieldName + " = $1 ORDER BY u.id";
+        std::string sql = "SELECT s.* FROM " + TABLE_NAME + " s WHERE " + fieldName + " = ? ORDER BY s.name";
         
-        std::string useFieldValue = fieldValue;
+        std::string useFieldValue = fieldValue;  // Создаем неконстантную копию
         Statement select(connection->getSession());
         select << sql,
             use(useFieldValue),
             now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -415,7 +381,8 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findByField(const std
     }
 }
 
-std::vector<std::unique_ptr<models::User>> UserRepository::search(const std::string& query, const std::vector<std::string>& fields)
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::search(
+    const std::string& query, const std::vector<std::string>& fields)
 {
     auto connection = acquireConnection();
     
@@ -423,23 +390,24 @@ std::vector<std::unique_ptr<models::User>> UserRepository::search(const std::str
     {
         if (fields.empty())
         {
-            return std::vector<std::unique_ptr<models::User>>();
+            return std::vector<std::unique_ptr<models::Supplier>>();
         }
         
-        std::string sql = "SELECT u.* FROM " + TABLE_NAME + " u WHERE ";
+        std::string sql = "SELECT s.* FROM " + TABLE_NAME + " s WHERE ";
         std::string searchQuery = "%" + query + "%";
         
         for (size_t i = 0; i < fields.size(); ++i)
         {
             if (i > 0) sql += " OR ";
-            sql += fields[i] + " ILIKE $" + std::to_string(i + 1);
+            sql += fields[i] + " ILIKE ?";
         }
         
-        sql += " ORDER BY u.id";
+        sql += " ORDER BY s.name";
         
         Statement select(connection->getSession());
         select << sql;
         
+        // Привязываем параметры
         for (size_t i = 0; i < fields.size(); ++i)
         {
             select, use(searchQuery);
@@ -448,15 +416,15 @@ std::vector<std::unique_ptr<models::User>> UserRepository::search(const std::str
         select, now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -468,55 +436,26 @@ std::vector<std::unique_ptr<models::User>> UserRepository::search(const std::str
     }
 }
 
-std::unique_ptr<models::User> UserRepository::findByUsername(const std::string& username)
-{
-    auto users = findByField("username", username);
-    
-    if (users.empty())
-    {
-        return nullptr;
-    }
-    
-    return std::move(users[0]);
-}
-
-std::unique_ptr<models::User> UserRepository::findByEmail(const std::string& email)
-{
-    auto users = findByField("email", email);
-    
-    if (users.empty())
-    {
-        return nullptr;
-    }
-    
-    return std::move(users[0]);
-}
-
-std::vector<std::unique_ptr<models::User>> UserRepository::findByRole(const std::string& role)
-{
-    return findByField("role", role);
-}
-
-std::vector<std::unique_ptr<models::User>> UserRepository::findActiveUsers()
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findActiveSuppliers()
 {
     auto connection = acquireConnection();
     
     try
     {
         Statement select(connection->getSession());
-        select << "SELECT u.* FROM " + TABLE_NAME + " u WHERE u.is_active = true ORDER BY u.id",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.is_active = true ORDER BY s.name",
             now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -528,26 +467,26 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findActiveUsers()
     }
 }
 
-std::vector<std::unique_ptr<models::User>> UserRepository::findInactiveUsers()
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findInactiveSuppliers()
 {
     auto connection = acquireConnection();
     
     try
     {
         Statement select(connection->getSession());
-        select << "SELECT u.* FROM " + TABLE_NAME + " u WHERE u.is_active = false ORDER BY u.id",
+        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.is_active = false ORDER BY s.name",
             now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -559,28 +498,30 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findInactiveUsers()
     }
 }
 
-std::vector<std::unique_ptr<models::User>> UserRepository::findUsersWithLastLoginBefore(const std::string& date)
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findSuppliersByRating(double minRating, double maxRating)
 {
     auto connection = acquireConnection();
     
     try
     {
-        std::string useDate = date;
+        double useMinRating = minRating;
+        double useMaxRating = maxRating;
         Statement select(connection->getSession());
-        select << "SELECT u.* FROM " + TABLE_NAME + " u WHERE u.last_login < $1 ORDER BY u.last_login",
-            use(useDate),
+        select << "SELECT s.* FROM " + TABLE_NAME + " s WHERE s.rating >= ? AND s.rating <= ? ORDER BY s.rating DESC",
+            use(useMinRating),
+            use(useMaxRating),
             now;
         
         RecordSet rs(select);
-        std::vector<std::unique_ptr<models::User>> users;
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Row row = rs.row(i);
-            users.push_back(std::make_unique<models::User>(mapRowToUser(row)));
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
         }
         
-        return users;
+        return suppliers;
     }
     catch (const Poco::Exception& e)
     {
@@ -592,20 +533,53 @@ std::vector<std::unique_ptr<models::User>> UserRepository::findUsersWithLastLogi
     }
 }
 
-bool UserRepository::updatePassword(long long id, const std::string& newPasswordHash)
+std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findSuppliersWithProducts()
+{
+    auto connection = acquireConnection();
+    
+    try
+    {
+        Statement select(connection->getSession());
+        select << "SELECT DISTINCT s.* FROM " + TABLE_NAME + " s "
+               << "JOIN products p ON p.supplier_id = s.id "
+               << "WHERE p.is_active = true ORDER BY s.name",
+            now;
+        
+        RecordSet rs(select);
+        std::vector<std::unique_ptr<models::Supplier>> suppliers;
+        
+        for (size_t i = 0; i < rs.rowCount(); ++i)
+        {
+            Row row = rs.row(i);
+            suppliers.push_back(std::make_unique<models::Supplier>(mapRowToSupplier(row)));
+        }
+        
+        return suppliers;
+    }
+    catch (const Poco::Exception& e)
+    {
+        throw database::DatabaseException(e.displayText(), database::DatabaseException::ErrorCode::QUERY_FAILED);
+    }
+    catch (const std::exception& e)
+    {
+        throw database::DatabaseException(e.what(), database::DatabaseException::ErrorCode::QUERY_FAILED);
+    }
+}
+
+bool SupplierRepository::updateRating(long long id, double newRating)
 {
     auto connection = acquireConnection();
     
     try
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        std::string passwordHashCopy = newPasswordHash;
+        double useNewRating = newRating;  // Создаем неконстантную копию
         
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET password_hash = $1 WHERE id = $2",
-            use(passwordHashCopy),
+        updateStmt << "UPDATE " + TABLE_NAME + " SET rating = ? WHERE id = ?",
+            use(useNewRating),
             use(pocoId),
             now;
         
@@ -626,53 +600,19 @@ bool UserRepository::updatePassword(long long id, const std::string& newPassword
     }
 }
 
-bool UserRepository::updateLastLogin(long long id, const std::string& loginTime)
+bool SupplierRepository::updateStatus(long long id, bool isActive)
 {
     auto connection = acquireConnection();
     
     try
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        std::string loginTimeCopy = loginTime;
+        bool useIsActive = isActive;  // Создаем неконстантную копию
         
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET last_login = $1 WHERE id = $2",
-            use(loginTimeCopy),
-            use(pocoId),
-            now;
-        
-        int rowsAffected = updateStmt.execute();
-        
-        connection->commitTransaction();
-        return rowsAffected > 0;
-    }
-    catch (const Poco::Exception& e)
-    {
-        connection->rollbackTransaction();
-        throw database::DatabaseException(e.displayText(), database::DatabaseException::ErrorCode::QUERY_FAILED);
-    }
-    catch (const std::exception& e)
-    {
-        connection->rollbackTransaction();
-        throw database::DatabaseException(e.what(), database::DatabaseException::ErrorCode::QUERY_FAILED);
-    }
-}
-
-bool UserRepository::updateStatus(long long id, bool isActive)
-{
-    auto connection = acquireConnection();
-    
-    try
-    {
-        Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        bool useIsActive = isActive;
-        
-        connection->beginTransaction();
-        
-        Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = $1 WHERE id = $2",
+        updateStmt << "UPDATE " + TABLE_NAME + " SET is_active = ? WHERE id = ?",
             use(useIsActive),
             use(pocoId),
             now;
@@ -694,20 +634,25 @@ bool UserRepository::updateStatus(long long id, bool isActive)
     }
 }
 
-bool UserRepository::updateRole(long long id, const std::string& role)
+bool SupplierRepository::updateContactInfo(long long id, const std::string& contactPerson, 
+                                         const std::string& email, const std::string& phone)
 {
     auto connection = acquireConnection();
     
     try
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        std::string roleCopy = role;
+        std::string contactPersonCopy = contactPerson;  // Создаем неконстантные копии
+        std::string emailCopy = email;
+        std::string phoneCopy = phone;
         
         connection->beginTransaction();
         
         Statement updateStmt(connection->getSession());
-        updateStmt << "UPDATE " + TABLE_NAME + " SET role = $1 WHERE id = $2",
-            use(roleCopy),
+        updateStmt << "UPDATE " + TABLE_NAME + " SET contact_person = ?, email = ?, phone = ? WHERE id = ?",
+            use(contactPersonCopy),
+            use(emailCopy),
+            use(phoneCopy),
             use(pocoId),
             now;
         
@@ -728,32 +673,7 @@ bool UserRepository::updateRole(long long id, const std::string& role)
     }
 }
 
-int UserRepository::countByRole(const std::string& role)
-{
-    auto connection = acquireConnection();
-    
-    try
-    {
-        std::string useRole = role;
-        Statement select(connection->getSession());
-        select << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE role = $1",
-            use(useRole),
-            now;
-        
-        RecordSet rs(select);
-        return rs.row(0)[0].convert<int>();
-    }
-    catch (const Poco::Exception& e)
-    {
-        throw database::DatabaseException(e.displayText(), database::DatabaseException::ErrorCode::QUERY_FAILED);
-    }
-    catch (const std::exception& e)
-    {
-        throw database::DatabaseException(e.what(), database::DatabaseException::ErrorCode::QUERY_FAILED);
-    }
-}
-
-int UserRepository::countActiveUsers()
+int SupplierRepository::countActiveSuppliers()
 {
     auto connection = acquireConnection();
     
@@ -776,22 +696,22 @@ int UserRepository::countActiveUsers()
     }
 }
 
-bool UserRepository::usernameExists(const std::string& username)
+double SupplierRepository::getAverageRating()
 {
     auto connection = acquireConnection();
     
     try
     {
-        std::string useUsername = username;
         Statement select(connection->getSession());
-        select << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE username = $1",
-            use(useUsername),
+        select << "SELECT AVG(rating) FROM " + TABLE_NAME + " WHERE rating > 0",
             now;
         
         RecordSet rs(select);
-        int count = rs.row(0)[0].convert<int>();
-        
-        return count > 0;
+        if (rs.rowCount() > 0 && !rs.row(0)[0].isEmpty())
+        {
+            return rs.row(0)[0].convert<double>();
+        }
+        return 0.0;
     }
     catch (const Poco::Exception& e)
     {
@@ -803,58 +723,35 @@ bool UserRepository::usernameExists(const std::string& username)
     }
 }
 
-bool UserRepository::emailExists(const std::string& email)
-{
-    auto connection = acquireConnection();
-    
-    try
-    {
-        std::string useEmail = email;
-        Statement select(connection->getSession());
-        select << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE email = $1",
-            use(useEmail),
-            now;
-        
-        RecordSet rs(select);
-        int count = rs.row(0)[0].convert<int>();
-        
-        return count > 0;
-    }
-    catch (const Poco::Exception& e)
-    {
-        throw database::DatabaseException(e.displayText(), database::DatabaseException::ErrorCode::QUERY_FAILED);
-    }
-    catch (const std::exception& e)
-    {
-        throw database::DatabaseException(e.what(), database::DatabaseException::ErrorCode::QUERY_FAILED);
-    }
-}
-
-Poco::JSON::Array UserRepository::getUserStatistics()
+Poco::JSON::Array SupplierRepository::getSupplierStatistics()
 {
     auto connection = acquireConnection();
     
     try
     {
         Statement select(connection->getSession());
-        select << "SELECT role, COUNT(*) as count, "
-               << "SUM(CASE WHEN is_active THEN 1 ELSE 0 END) as active_count, "
-               << "SUM(CASE WHEN NOT is_active THEN 1 ELSE 0 END) as inactive_count "
-               << "FROM " + TABLE_NAME + " GROUP BY role ORDER BY role",
+        select << "SELECT "
+               << "COUNT(*) as total_suppliers, "
+               << "SUM(CASE WHEN is_active THEN 1 ELSE 0 END) as active_suppliers, "
+               << "AVG(rating) as avg_rating, "
+               << "MIN(rating) as min_rating, "
+               << "MAX(rating) as max_rating "
+               << "FROM " + TABLE_NAME,
             now;
         
         RecordSet rs(select);
         Poco::JSON::Array jsonArray;
         
-        for (size_t i = 0; i < rs.rowCount(); ++i)
+        if (rs.rowCount() > 0)
         {
-            Row row = rs.row(i);
+            Row row = rs.row(0);
             Poco::JSON::Object obj;
             
-            obj.set("role", row["role"].convert<std::string>());
-            obj.set("count", row["count"].convert<int>());
-            obj.set("active_count", row["active_count"].convert<int>());
-            obj.set("inactive_count", row["inactive_count"].convert<int>());
+            obj.set("total_suppliers", row["total_suppliers"].convert<int>());
+            obj.set("active_suppliers", row["active_suppliers"].convert<int>());
+            obj.set("avg_rating", row["avg_rating"].convert<double>());
+            obj.set("min_rating", row["min_rating"].convert<double>());
+            obj.set("max_rating", row["max_rating"].convert<double>());
             
             jsonArray.add(obj);
         }
@@ -871,39 +768,136 @@ Poco::JSON::Array UserRepository::getUserStatistics()
     }
 }
 
-models::User UserRepository::mapRowToUser(Poco::Data::Row& row) const
+Poco::JSON::Array SupplierRepository::getSupplierPerformanceReport()
 {
-    models::User user;
+    auto connection = acquireConnection();
     
-    user.id = row["id"].convert<long long>();
-    user.username = row["username"].convert<std::string>();
-    user.passwordHash = row["password_hash"].convert<std::string>();
-    user.fullName = row["full_name"].convert<std::string>();
-    user.email = row["email"].convert<std::string>();
+    try
+    {
+        Statement select(connection->getSession());
+        select << "SELECT s.id, s.name, COUNT(p.id) as product_count, "
+               << "AVG(p.unit_price) as avg_product_price, "
+               << "SUM(CASE WHEN p.is_active THEN 1 ELSE 0 END) as active_products "
+               << "FROM " + TABLE_NAME + " s "
+               << "LEFT JOIN products p ON p.supplier_id = s.id "
+               << "GROUP BY s.id, s.name "
+               << "ORDER BY product_count DESC",
+            now;
+        
+        RecordSet rs(select);
+        Poco::JSON::Array jsonArray;
+        
+        for (size_t i = 0; i < rs.rowCount(); ++i)
+        {
+            Row row = rs.row(i);
+            Poco::JSON::Object obj;
+            
+            obj.set("id", row["id"].convert<long long>());
+            obj.set("name", row["name"].convert<std::string>());
+            obj.set("product_count", row["product_count"].convert<int>());
+            obj.set("avg_product_price", row["avg_product_price"].convert<double>());
+            obj.set("active_products", row["active_products"].convert<int>());
+            
+            jsonArray.add(obj);
+        }
+        
+        return jsonArray;
+    }
+    catch (const Poco::Exception& e)
+    {
+        throw database::DatabaseException(e.displayText(), database::DatabaseException::ErrorCode::QUERY_FAILED);
+    }
+    catch (const std::exception& e)
+    {
+        throw database::DatabaseException(e.what(), database::DatabaseException::ErrorCode::QUERY_FAILED);
+    }
+}
+
+std::vector<std::pair<long long, std::string>> SupplierRepository::getSupplierNames()
+{
+    auto connection = acquireConnection();
+    std::vector<std::pair<long long, std::string>> supplierNames;
     
-    std::string roleStr = row["role"].convert<std::string>();
-    user.role = models::User::stringToRole(roleStr);
+    try
+    {
+        Statement select(connection->getSession());
+        select << "SELECT id, name FROM " + TABLE_NAME + " WHERE is_active = true ORDER BY name",
+            now;
+        
+        RecordSet rs(select);
+        
+        for (size_t i = 0; i < rs.rowCount(); ++i)
+        {
+            Row row = rs.row(i);
+            supplierNames.emplace_back(
+                row["id"].convert<long long>(),
+                row["name"].convert<std::string>()
+            );
+        }
+        
+        return supplierNames;
+    }
+    catch (const Poco::Exception& e)
+    {
+        throw database::DatabaseException(e.displayText(), database::DatabaseException::ErrorCode::QUERY_FAILED);
+    }
+    catch (const std::exception& e)
+    {
+        throw database::DatabaseException(e.what(), database::DatabaseException::ErrorCode::QUERY_FAILED);
+    }
+}
+
+models::Supplier SupplierRepository::mapRowToSupplier(Poco::Data::Row& row) const
+{
+    models::Supplier supplier;
+    
+    supplier.id = row["id"].convert<long long>();
+    supplier.name = row["name"].convert<std::string>();
+    
+    if (!row["contact_person"].isEmpty())
+    {
+        supplier.contactPerson = row["contact_person"].convert<std::string>();
+    }
+    
+    if (!row["email"].isEmpty())
+    {
+        supplier.email = row["email"].convert<std::string>();
+    }
+    
+    if (!row["phone"].isEmpty())
+    {
+        supplier.phone = row["phone"].convert<std::string>();
+    }
+    
+    if (!row["address"].isEmpty())
+    {
+        supplier.address = row["address"].convert<std::string>();
+    }
+    
+    if (!row["tax_id"].isEmpty())
+    {
+        supplier.taxId = row["tax_id"].convert<std::string>();
+    }
+    
+    if (!row["payment_terms"].isEmpty())
+    {
+        supplier.paymentTerms = row["payment_terms"].convert<std::string>();
+    }
+    
+    if (!row["rating"].isEmpty())
+    {
+        supplier.rating = row["rating"].convert<double>();
+    }
     
     if (!row["created_at"].isEmpty())
     {
         DateTime dt = row["created_at"].extract<DateTime>();
-        user.createdAt = DateTimeFormatter::format(dt, DateTimeFormat::ISO8601_FORMAT);
+        supplier.createdAt = DateTimeFormatter::format(dt, DateTimeFormat::ISO8601_FORMAT);
     }
     
-    if (!row["last_login"].isEmpty())
-    {
-        DateTime dt = row["last_login"].extract<DateTime>();
-        user.lastLogin = DateTimeFormatter::format(dt, DateTimeFormat::ISO8601_FORMAT);
-    }
+    supplier.isActive = row["is_active"].convert<bool>();
     
-    user.isActive = row["is_active"].convert<bool>();
-    
-    if (!row["phone_number"].isEmpty())
-    {
-        user.phoneNumber = row["phone_number"].convert<std::string>();
-    }
-    
-    return user;
+    return supplier;
 }
 
 } // namespace database::repositories

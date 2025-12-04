@@ -25,7 +25,7 @@ std::unique_ptr<ConfigManager> ConfigManager::instance = nullptr;
 std::mutex ConfigManager::instanceMutex;
 
 ConfigManager::ConfigManager()
-    : configPath("config/config.json")
+    : configPath("../config/config.json")
     , configLoaded(false)
 {
     initialize();
