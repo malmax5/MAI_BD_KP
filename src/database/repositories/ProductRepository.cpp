@@ -43,7 +43,7 @@ std::unique_ptr<models::Product> ProductRepository::findById(long long id)
                   "FROM " << TABLE_NAME << " p "
                   "LEFT JOIN categories c ON c.id = p.category_id "
                   "LEFT JOIN suppliers s ON s.id = p.supplier_id "
-                  "WHERE p.id = ?",
+                  "WHERE p.id = $1",
             Poco::Data::Keywords::use(pocoId),
             now;
         
@@ -155,7 +155,7 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findPaginated(i
                   "FROM " << TABLE_NAME << " p "
                   "LEFT JOIN categories c ON c.id = p.category_id "
                   "LEFT JOIN suppliers s ON s.id = p.supplier_id "
-                  "ORDER BY p.name LIMIT ? OFFSET ?",
+                  "ORDER BY p.name LIMIT $1 OFFSET $2",
             Poco::Data::Keywords::use(usePageSize),
             Poco::Data::Keywords::use(useOffset),
             now;
@@ -226,7 +226,7 @@ long long ProductRepository::create(const models::Product& product)
                   "(sku, name, description, category_id, supplier_id, "
                   "unit_price, weight, dimensions, min_stock_level, "
                   "max_stock_level, is_active, created_at) "
-                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                  "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "
                   "RETURNING id",
             Poco::Data::Keywords::use(sku),
             Poco::Data::Keywords::use(name),
@@ -277,10 +277,10 @@ bool ProductRepository::update(long long id, const models::Product& product)
         
         Poco::Data::Statement update(connection->getSession());
         update << "UPDATE " << TABLE_NAME << " SET "
-                  "sku = ?, name = ?, description = ?, category_id = ?, "
-                  "supplier_id = ?, unit_price = ?, weight = ?, dimensions = ?, "
-                  "min_stock_level = ?, max_stock_level = ?, is_active = ? "
-                  "WHERE id = ?",
+                  "sku = $1, name = $2, description = $3, category_id = $4, "
+                  "supplier_id = $5, unit_price = $6, weight = $7, dimensions = $8, "
+                  "min_stock_level = $9, max_stock_level = $10, is_active = $11 "
+                  "WHERE id = $12",
             Poco::Data::Keywords::use(sku),
             Poco::Data::Keywords::use(name),
             Poco::Data::Keywords::use(description),
@@ -319,7 +319,7 @@ bool ProductRepository::remove(long long id)
         
         // Проверяем, есть ли связанные партии товаров
         Poco::Data::Statement checkBatches(connection->getSession());
-        checkBatches << "SELECT COUNT(*) FROM product_batches WHERE product_id = ?",
+        checkBatches << "SELECT COUNT(*) FROM product_batches WHERE product_id = $1",
             Poco::Data::Keywords::use(pocoId),
             now;
         
@@ -337,7 +337,7 @@ bool ProductRepository::remove(long long id)
         
         // Проверяем, есть ли связанные позиции заказов
         Poco::Data::Statement checkOrders(connection->getSession());
-        checkOrders << "SELECT COUNT(*) FROM order_items WHERE product_id = ?",
+        checkOrders << "SELECT COUNT(*) FROM order_items WHERE product_id = $1",
             Poco::Data::Keywords::use(pocoId),
             now;
         
@@ -354,9 +354,8 @@ bool ProductRepository::remove(long long id)
         }
         
         Poco::Data::Statement del(connection->getSession());
-        del << "DELETE FROM " << TABLE_NAME << " WHERE id = ?",
-            Poco::Data::Keywords::use(pocoId),
-            now;
+        del << "DELETE FROM " << TABLE_NAME << " WHERE id = $1",
+            Poco::Data::Keywords::use(pocoId);
         
         int rowsAffected = del.execute();
         
@@ -381,7 +380,7 @@ bool ProductRepository::softDelete(long long id)
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET is_active = false WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET is_active = false WHERE id = $1",
             Poco::Data::Keywords::use(pocoId),
             now;
         
@@ -463,7 +462,7 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findByField(
                           "FROM " + TABLE_NAME + " p "
                           "LEFT JOIN categories c ON c.id = p.category_id "
                           "LEFT JOIN suppliers s ON s.id = p.supplier_id "
-                          "WHERE p." + fieldName + " = ? ORDER BY p.name";
+                          "WHERE p." + fieldName + " = $1 ORDER BY p.name";
         
         std::string fieldValueCopy = fieldValue;
         Poco::Data::Statement select(connection->getSession());
@@ -753,7 +752,7 @@ bool ProductRepository::updateStockLevels(long long id, int minStockLevel, int m
         
         Poco::Data::Statement update(connection->getSession());
         update << "UPDATE " << TABLE_NAME << " SET "
-                  "min_stock_level = ?, max_stock_level = ? WHERE id = ?",
+                  "min_stock_level = $1, max_stock_level = $2 WHERE id = $3",
             Poco::Data::Keywords::use(useMinStockLevel),
             Poco::Data::Keywords::use(useMaxStockLevel),
             Poco::Data::Keywords::use(pocoId),
@@ -783,7 +782,7 @@ bool ProductRepository::updatePrice(long long id, double newPrice)
         double useNewPrice = newPrice;
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET unit_price = ? WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET unit_price = $1 WHERE id = $2",
             Poco::Data::Keywords::use(useNewPrice),
             Poco::Data::Keywords::use(pocoId),
             now;
@@ -812,7 +811,7 @@ bool ProductRepository::updateStatus(long long id, bool isActive)
         bool useIsActive = isActive;
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET is_active = ? WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET is_active = $1 WHERE id = $2",
             Poco::Data::Keywords::use(useIsActive),
             Poco::Data::Keywords::use(pocoId),
             now;
@@ -841,7 +840,7 @@ bool ProductRepository::updateCategory(long long id, long long newCategoryId)
         Poco::Int64 pocoNewCategoryId = static_cast<Poco::Int64>(newCategoryId);
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET category_id = ? WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET category_id = $1 WHERE id = $2",
             Poco::Data::Keywords::use(pocoNewCategoryId),
             Poco::Data::Keywords::use(pocoId),
             now;
@@ -870,7 +869,7 @@ bool ProductRepository::updateSupplier(long long id, long long newSupplierId)
         Poco::Int64 pocoNewSupplierId = static_cast<Poco::Int64>(newSupplierId);
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET supplier_id = ? WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET supplier_id = $1 WHERE id = $2",
             Poco::Data::Keywords::use(pocoNewSupplierId),
             Poco::Data::Keywords::use(pocoId),
             now;
@@ -921,7 +920,7 @@ int ProductRepository::countProductsInCategory(long long categoryId)
         
         Poco::Data::Statement countStmt(connection->getSession());
         countStmt << "SELECT COUNT(*) FROM " << TABLE_NAME 
-                  << " WHERE category_id = ? AND is_active = true",
+                  << " WHERE category_id = $1 AND is_active = true",
             Poco::Data::Keywords::use(pocoCategoryId),
             now;
         
@@ -949,7 +948,7 @@ int ProductRepository::countProductsBySupplier(long long supplierId)
         
         Poco::Data::Statement countStmt(connection->getSession());
         countStmt << "SELECT COUNT(*) FROM " << TABLE_NAME 
-                  << " WHERE supplier_id = ? AND is_active = true",
+                  << " WHERE supplier_id = $1 AND is_active = true",
             Poco::Data::Keywords::use(pocoSupplierId),
             now;
         
@@ -1027,7 +1026,7 @@ bool ProductRepository::skuExists(const std::string& sku)
     {
         std::string skuCopy = sku;
         Poco::Data::Statement countStmt(connection->getSession());
-        countStmt << "SELECT COUNT(*) FROM " << TABLE_NAME << " WHERE sku = ?",
+        countStmt << "SELECT COUNT(*) FROM " << TABLE_NAME << " WHERE sku = $1",
             Poco::Data::Keywords::use(skuCopy),
             now;
         
@@ -1295,7 +1294,7 @@ void ProductRepository::calculateCurrentStock(models::Product& product)
         Poco::Data::Statement stockStmt(connection->getSession());
         stockStmt << "SELECT COALESCE(SUM(quantity_available), 0) as total_stock "
                   << "FROM product_batches "
-                  << "WHERE product_id = ? AND quality_status = 'approved'",
+                  << "WHERE product_id = $1 AND quality_status = 'approved'",
             Poco::Data::Keywords::use(pocoId),
             now;
         
