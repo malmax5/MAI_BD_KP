@@ -7,7 +7,7 @@
 #include <vector>
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Array.h>
-
+ 
 namespace warehouse_backend::database::repositories
 {
 
