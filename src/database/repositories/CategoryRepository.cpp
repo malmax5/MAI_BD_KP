@@ -12,6 +12,8 @@
 #include "../../utils/DateUtils.hpp"
 #include "../../utils/JsonUtils.hpp"
 
+#include <stack>
+
 using namespace Poco::Data;
 using namespace Poco::Data::Keywords;
 using namespace Poco;
@@ -40,7 +42,7 @@ std::unique_ptr<models::Category> CategoryRepository::findById(long long id)
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
         Poco::Data::Statement select(connection->getSession());
         select << "SELECT id, name, description, parent_id, path, sort_order, created_at "
-                  "FROM " << TABLE_NAME << " WHERE id = ?",
+                  "FROM " << TABLE_NAME << " WHERE id = $1",
             Poco::Data::Keywords::use(pocoId),
             now;
         
@@ -52,7 +54,7 @@ std::unique_ptr<models::Category> CategoryRepository::findById(long long id)
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -60,8 +62,8 @@ std::unique_ptr<models::Category> CategoryRepository::findById(long long id)
             if (category->parentId > 0)
             {
                 Poco::Data::Statement parentSelect(connection->getSession());
-                Poco::Int64 parentIdCopy = category->parentId;  // Неконстантная копия
-                parentSelect << "SELECT name FROM " << TABLE_NAME << " WHERE id = ?",
+                Poco::Int64 parentIdCopy = category->parentId;
+                parentSelect << "SELECT name FROM " << TABLE_NAME << " WHERE id = $1",
                     Poco::Data::Keywords::use(parentIdCopy),
                     now;
                 
@@ -103,7 +105,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findAll()
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -132,7 +134,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findPaginated
         int useOffset = offset;
         Poco::Data::Statement select(connection->getSession());
         select << "SELECT id, name, description, parent_id, path, sort_order, created_at "
-                  "FROM " << TABLE_NAME << " ORDER BY path, sort_order LIMIT ? OFFSET ?",
+                  "FROM " << TABLE_NAME << " ORDER BY path, sort_order LIMIT $1 OFFSET $2",
             Poco::Data::Keywords::use(usePageSize),
             Poco::Data::Keywords::use(useOffset),
             now;
@@ -145,7 +147,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findPaginated
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -171,27 +173,46 @@ long long CategoryRepository::create(const models::Category& category)
         std::string createdAt = category.createdAt.empty() ? 
             DateUtils::formatDateTime(DateUtils::now()) : category.createdAt;
         
-        // Создаем неконстантные копии всех параметров
         std::string nameCopy = category.name;
         std::string descriptionCopy = category.description;
         long long parentIdCopy = category.parentId;
+        std::string pathCopy = category.path;
         int sortOrderCopy = category.sortOrder;
         std::string createdAtCopy = createdAt;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
         
-        insert << "INSERT INTO " << TABLE_NAME << " "
-                  "(name, description, parent_id, sort_order, created_at) "
-                  "VALUES (?, ?, ?, ?, ?) "
-                  "RETURNING id",
-            Poco::Data::Keywords::use(nameCopy),
-            Poco::Data::Keywords::use(descriptionCopy),
-            Poco::Data::Keywords::use(parentIdCopy),
-            Poco::Data::Keywords::use(sortOrderCopy),
-            Poco::Data::Keywords::use(createdAtCopy),
-            Poco::Data::Keywords::into(newId),
-            now;
+        if (parentIdCopy > 0)
+        {
+            Poco::Int64 parentIdCopy = static_cast<Poco::Int64>(category.parentId);
+            insert << "INSERT INTO " << TABLE_NAME << " "
+                      "(name, description, parent_id, path, sort_order, created_at) "
+                      "VALUES ($1, $2, $3, $4, $5, $6) "
+                      "RETURNING id",
+                Poco::Data::Keywords::use(nameCopy),
+                Poco::Data::Keywords::use(descriptionCopy),
+                Poco::Data::Keywords::use(parentIdCopy),
+                Poco::Data::Keywords::use(pathCopy),
+                Poco::Data::Keywords::use(sortOrderCopy),
+                Poco::Data::Keywords::use(createdAtCopy),
+                Poco::Data::Keywords::into(newId),
+                now;
+        }
+        else
+        {
+            insert << "INSERT INTO " << TABLE_NAME << " "
+                      "(name, description, parent_id, path, sort_order, created_at) "
+                      "VALUES ($1, $2, NULL, $3, $4, $5) "
+                      "RETURNING id",
+                Poco::Data::Keywords::use(nameCopy),
+                Poco::Data::Keywords::use(descriptionCopy),
+                Poco::Data::Keywords::use(pathCopy),
+                Poco::Data::Keywords::use(sortOrderCopy),
+                Poco::Data::Keywords::use(createdAtCopy),
+                Poco::Data::Keywords::into(newId),
+                now;
+        }
         
         commitTransaction(*connection);
         return static_cast<long long>(newId);
@@ -211,7 +232,6 @@ bool CategoryRepository::update(long long id, const models::Category& category)
     {
         beginTransaction(*connection);
         
-        // Создаем неконстантные копии всех параметров
         std::string nameCopy = category.name;
         std::string descriptionCopy = category.description;
         long long parentIdCopy = category.parentId;
@@ -219,14 +239,27 @@ bool CategoryRepository::update(long long id, const models::Category& category)
         long long idCopy = id;
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET "
-                  "name = ?, description = ?, parent_id = ?, sort_order = ? WHERE id = ?",
-            Poco::Data::Keywords::use(nameCopy),
-            Poco::Data::Keywords::use(descriptionCopy),
-            Poco::Data::Keywords::use(parentIdCopy),
-            Poco::Data::Keywords::use(sortOrderCopy),
-            Poco::Data::Keywords::use(idCopy),
-            now;
+        if (parentIdCopy > 0)
+        {
+            update << "UPDATE " << TABLE_NAME << " SET "
+                      "name = $1, description = $2, parent_id = $3, sort_order = $4 WHERE id = $5",
+                Poco::Data::Keywords::use(nameCopy),
+                Poco::Data::Keywords::use(descriptionCopy),
+                Poco::Data::Keywords::use(parentIdCopy),
+                Poco::Data::Keywords::use(sortOrderCopy),
+                Poco::Data::Keywords::use(id),
+                now;
+        }
+        else
+        {
+            update << "UPDATE " << TABLE_NAME << " SET "
+                      "name = $1, description = $2, parent_id = NULL, sort_order = $3 WHERE id = $4",
+                Poco::Data::Keywords::use(nameCopy),
+                Poco::Data::Keywords::use(descriptionCopy),
+                Poco::Data::Keywords::use(sortOrderCopy),
+                Poco::Data::Keywords::use(id),
+                now;
+        }
         
         int rowsAffected = update.execute();
         
@@ -250,54 +283,81 @@ bool CategoryRepository::remove(long long id)
         
         long long idCopy = id;
         
-        Poco::Data::Statement checkProducts(connection->getSession());
-        checkProducts << "SELECT COUNT(*) FROM products WHERE category_id = ?",
-            Poco::Data::Keywords::use(idCopy),
-            now;
+        std::vector<long long> allIdsToDelete;
+        std::stack<long long> stack;
+        stack.push(id);
         
-        int productCount = 0;
-        Poco::Data::RecordSet rsProducts(checkProducts);
-        if (rsProducts.rowCount() > 0)
+        while (!stack.empty())
         {
-            productCount = rsProducts.value(0, 0).convert<int>();
+            long long currentId = stack.top();
+            stack.pop();
+            
+            if (std::find(allIdsToDelete.begin(), allIdsToDelete.end(), currentId) != allIdsToDelete.end())
+            {
+                continue;
+            }
+            
+            allIdsToDelete.push_back(currentId);
+            
+            Poco::Data::Statement getChildren(connection->getSession());
+            getChildren << "SELECT id FROM " << TABLE_NAME << " WHERE parent_id = $1",
+                Poco::Data::Keywords::use(currentId),
+                now;
+            
+            Poco::Data::RecordSet rsChildren(getChildren);
+            for (size_t i = 0; i < rsChildren.rowCount(); ++i)
+            {
+                long long childId = rsChildren.value("id", 0).convert<long long>();
+                stack.push(childId);
+            }
         }
         
-        if (productCount > 0)
+        for (long long categoryId : allIdsToDelete)
         {
-            throw std::runtime_error("Cannot delete category with associated products");
+            Poco::Data::Statement checkProducts(connection->getSession());
+            checkProducts << "SELECT COUNT(*) FROM products WHERE category_id = $1",
+                Poco::Data::Keywords::use(categoryId),
+                now;
+            
+            Poco::Data::RecordSet rsProducts(checkProducts);
+            if (rsProducts.rowCount() > 0) {
+                int productCount = rsProducts.value(0, 0).convert<int>();
+                if (productCount > 0) {
+                    throw std::runtime_error("Cannot delete category with associated products");
+                }
+            }
         }
         
-        Poco::Data::Statement checkChildren(connection->getSession());
-        checkChildren << "SELECT COUNT(*) FROM " << TABLE_NAME << " WHERE parent_id = ?",
-            Poco::Data::Keywords::use(idCopy),
-            now;
-        
-        int childCount = 0;
-        Poco::Data::RecordSet rsChildren(checkChildren);
-        if (rsChildren.rowCount() > 0)
+        if (!allIdsToDelete.empty())
         {
-            childCount = rsChildren.value(0, 0).convert<int>();
+            std::ostringstream oss;
+            oss << "DELETE FROM " << TABLE_NAME << " WHERE id IN (";
+            for (size_t i = 0; i < allIdsToDelete.size(); ++i)
+            {
+                if (i > 0) oss << ", ";
+                oss << allIdsToDelete[i];
+            }
+            oss << ")";
+            
+            Poco::Data::Statement del(connection->getSession());
+            del << oss.str(),
+                now;
+            
+            int rowsAffected = del.execute();
         }
-        
-        if (childCount > 0)
-        {
-            throw std::runtime_error("Cannot delete category with child categories");
-        }
-        
-        Poco::Data::Statement del(connection->getSession());
-        del << "DELETE FROM " << TABLE_NAME << " WHERE id = ?",
-            Poco::Data::Keywords::use(idCopy),
-            now;
-        
-        int rowsAffected = del.execute();
         
         commitTransaction(*connection);
-        return rowsAffected > 0;
+        return true;
     }
     catch (const Poco::Exception& e)
     {
         rollbackTransaction(*connection);
         throw std::runtime_error("Database error in remove: " + e.displayText());
+    }
+    catch (const std::exception& e)
+    {
+        rollbackTransaction(*connection);
+        throw std::runtime_error(e.what());
     }
 }
 
@@ -366,7 +426,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findByField(
     try
     {
         std::string sql = "SELECT id, name, description, parent_id, path, sort_order, created_at "
-                          "FROM " + TABLE_NAME + " WHERE " + fieldName + " = ? "
+                          "FROM " + TABLE_NAME + " WHERE " + fieldName + " = $1 "
                           "ORDER BY path, sort_order";
         
         std::string fieldValueCopy = fieldValue;
@@ -383,7 +443,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findByField(
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -423,7 +483,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::search(
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -459,7 +519,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findRootCateg
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = 0;
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -484,7 +544,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findChildCate
         long long parentIdCopy = parentId;
         Poco::Data::Statement select(connection->getSession());
         select << "SELECT id, name, description, parent_id, path, sort_order, created_at "
-                  "FROM " << TABLE_NAME << " WHERE parent_id = ? "
+                  "FROM " << TABLE_NAME << " WHERE parent_id = $1 "
                   "ORDER BY sort_order, name",
             Poco::Data::Keywords::use(parentIdCopy),
             now;
@@ -497,7 +557,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findChildCate
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -536,7 +596,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findCategorie
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -575,7 +635,7 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findLeafCateg
             category->id = rs.value("id", 0).convert<long long>();
             category->name = rs.value("name").convert<std::string>();
             category->description = rs.value("description").convert<std::string>();
-            category->parentId = rs.value("parent_id", 0).convert<long long>();
+            category->parentId = getParentIdFromVar(rs.value("parent_id"));
             category->path = rs.value("path").convert<std::string>();
             category->sortOrder = rs.value("sort_order", 0).convert<int>();
             category->createdAt = rs.value("created_at").convert<std::string>();
@@ -604,7 +664,7 @@ bool CategoryRepository::updateParent(long long id, long long newParentId)
         if (newParentIdCopy > 0)
         {
             Poco::Data::Statement check(connection->getSession());
-            check << "SELECT COUNT(*) FROM " << TABLE_NAME << " WHERE id = ?",
+            check << "SELECT COUNT(*) FROM " << TABLE_NAME << " WHERE id = $1",
                 Poco::Data::Keywords::use(newParentIdCopy),
                 now;
             
@@ -622,7 +682,7 @@ bool CategoryRepository::updateParent(long long id, long long newParentId)
         }
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET parent_id = ? WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET parent_id = $1 WHERE id = $2",
             Poco::Data::Keywords::use(newParentIdCopy),
             Poco::Data::Keywords::use(idCopy),
             now;
@@ -651,7 +711,7 @@ bool CategoryRepository::updateSortOrder(long long id, int sortOrder)
         int sortOrderCopy = sortOrder;
         
         Poco::Data::Statement update(connection->getSession());
-        update << "UPDATE " << TABLE_NAME << " SET sort_order = ? WHERE id = ?",
+        update << "UPDATE " << TABLE_NAME << " SET sort_order = $1 WHERE id = $2",
             Poco::Data::Keywords::use(sortOrderCopy),
             Poco::Data::Keywords::use(idCopy),
             now;
@@ -809,6 +869,16 @@ std::vector<long long> CategoryRepository::getCategoryAndSubcategoryIds(long lon
     }
     
     return categoryIds;
+}
+
+long long CategoryRepository::getParentIdFromVar(const Poco::Dynamic::Var& var) const
+{
+    if (var.isEmpty())
+    {
+        return 0;
+    }
+
+    return var.convert<long long>();
 }
 
 models::Category CategoryRepository::mapRowToCategory(Poco::Data::Row& row) const

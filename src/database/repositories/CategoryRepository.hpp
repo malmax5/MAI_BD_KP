@@ -54,6 +54,8 @@ public:
     std::vector<long long> getCategoryAndSubcategoryIds(long long categoryId);
     
 private:
+    long long getParentIdFromVar(const Poco::Dynamic::Var& var) const;
+
     models::Category mapRowToCategory(Poco::Data::Row& row) const;
     
     void buildCategoryTree(models::Category& parent, 
