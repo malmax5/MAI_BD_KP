@@ -68,7 +68,6 @@ std::unique_ptr<models::Product> ProductRepository::findById(long long id)
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             return product;
@@ -121,7 +120,6 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findAll()
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             products.push_back(std::move(product));
@@ -181,7 +179,6 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findPaginated(i
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             products.push_back(std::move(product));
@@ -203,7 +200,6 @@ long long ProductRepository::create(const models::Product& product)
     {
         beginTransaction(*connection);
         
-        // Создаем локальные переменные
         std::string sku = product.sku;
         std::string name = product.name;
         std::string description = product.description;
@@ -261,7 +257,6 @@ bool ProductRepository::update(long long id, const models::Product& product)
     {
         beginTransaction(*connection);
         
-        // Создаем локальные переменные
         std::string sku = product.sku;
         std::string name = product.name;
         std::string description = product.description;
@@ -317,7 +312,6 @@ bool ProductRepository::remove(long long id)
         
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
         
-        // Проверяем, есть ли связанные партии товаров
         Poco::Data::Statement checkBatches(connection->getSession());
         checkBatches << "SELECT COUNT(*) FROM product_batches WHERE product_id = $1",
             Poco::Data::Keywords::use(pocoId),
@@ -335,7 +329,6 @@ bool ProductRepository::remove(long long id)
             throw std::runtime_error("Cannot delete product with associated batches");
         }
         
-        // Проверяем, есть ли связанные позиции заказов
         Poco::Data::Statement checkOrders(connection->getSession());
         checkOrders << "SELECT COUNT(*) FROM order_items WHERE product_id = $1",
             Poco::Data::Keywords::use(pocoId),
@@ -491,7 +484,6 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findByField(
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             products.push_back(std::move(product));
@@ -548,7 +540,6 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::search(
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             products.push_back(std::move(product));
@@ -623,7 +614,6 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findActiveProdu
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             products.push_back(std::move(product));
@@ -676,7 +666,6 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findInactivePro
             product->categoryName = rs.value("category_name").convert<std::string>();
             product->supplierName = rs.value("supplier_name").convert<std::string>();
             
-            // Рассчитываем текущий остаток
             calculateCurrentStock(*product);
             
             products.push_back(std::move(product));
@@ -1052,7 +1041,6 @@ Poco::JSON::Array ProductRepository::getProductStatistics()
     
     try
     {
-        // Статистика по активности
         Poco::Data::Statement activityStats(connection->getSession());
         activityStats << "SELECT "
                          "COUNT(*) as total_products, "
@@ -1076,7 +1064,6 @@ Poco::JSON::Array ProductRepository::getProductStatistics()
             statsArray.add(activityStat);
         }
         
-        // Статистика по категориям
         Poco::Data::Statement categoryStats(connection->getSession());
         categoryStats << "SELECT c.name as category_name, COUNT(p.id) as product_count, "
                          "AVG(p.unit_price) as avg_price, "
@@ -1099,7 +1086,6 @@ Poco::JSON::Array ProductRepository::getProductStatistics()
             statsArray.add(categoryStat);
         }
         
-        // Статистика по поставщикам
         Poco::Data::Statement supplierStats(connection->getSession());
         supplierStats << "SELECT s.name as supplier_name, COUNT(p.id) as product_count, "
                          "AVG(p.unit_price) as avg_price, "
@@ -1309,7 +1295,6 @@ void ProductRepository::calculateCurrentStock(models::Product& product)
     }
     catch (const Poco::Exception& e)
     {
-        // Если произошла ошибка, устанавливаем stock в 0
         product.currentStock = 0;
     }
 }

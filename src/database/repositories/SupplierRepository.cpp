@@ -133,7 +133,6 @@ long long SupplierRepository::create(const models::Supplier& supplier)
     
     try
     {
-        // Создаем локальные переменные для всех параметров
         std::string name = supplier.name;
         std::string contactPerson = supplier.contactPerson;
         std::string email = supplier.email;
@@ -187,7 +186,6 @@ bool SupplierRepository::update(long long id, const models::Supplier& supplier)
     
     try
     {
-        // Создаем локальные переменные
         std::string name = supplier.name;
         std::string contactPerson = supplier.contactPerson;
         std::string email = supplier.email;
@@ -353,7 +351,7 @@ std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::findByField(
     {
         std::string sql = "SELECT s.* FROM " + TABLE_NAME + " s WHERE " + fieldName + " = $1 ORDER BY s.name";
         
-        std::string useFieldValue = fieldValue;  // Создаем неконстантную копию
+        std::string useFieldValue = fieldValue;
         Statement select(connection->getSession());
         select << sql,
             use(useFieldValue),
@@ -406,7 +404,6 @@ std::vector<std::unique_ptr<models::Supplier>> SupplierRepository::search(
         Statement select(connection->getSession());
         select << sql;
         
-        // Привязываем параметры
         for (size_t i = 0; i < fields.size(); ++i)
         {
             select, use(searchQuery);
@@ -572,7 +569,7 @@ bool SupplierRepository::updateRating(long long id, double newRating)
     try
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        double useNewRating = newRating;  // Создаем неконстантную копию
+        double useNewRating = newRating;
         
         connection->beginTransaction();
         
@@ -606,7 +603,7 @@ bool SupplierRepository::updateStatus(long long id, bool isActive)
     try
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        bool useIsActive = isActive;  // Создаем неконстантную копию
+        bool useIsActive = isActive;
         
         connection->beginTransaction();
         
@@ -641,7 +638,7 @@ bool SupplierRepository::updateContactInfo(long long id, const std::string& cont
     try
     {
         Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
-        std::string contactPersonCopy = contactPerson;  // Создаем неконстантные копии
+        std::string contactPersonCopy = contactPerson;
         std::string emailCopy = email;
         std::string phoneCopy = phone;
         

@@ -489,8 +489,6 @@ std::vector<std::unique_ptr<models::OrderItem>> OrderItemRepository::findByField
 std::vector<std::unique_ptr<models::OrderItem>> OrderItemRepository::search(
     const std::string& query, const std::vector<std::string>& fields)
 {
-    // Поскольку у order_items нет полей для поиска по тексту,
-    // этот метод возвращает пустой результат
     return std::vector<std::unique_ptr<models::OrderItem>>();
 }
 
@@ -1263,7 +1261,6 @@ Poco::JSON::Array OrderItemRepository::getPickingReport(long long orderId)
         {
             Poco::JSON::Object itemJson = item->toJson();
             
-            // Добавляем дополнительную информацию для отчета по комплектации
             itemJson.set("remaining_to_pick", item->getRemainingToShip());
             itemJson.set("is_fully_shipped", item->isFullyShipped());
             itemJson.set("can_be_picked", item->canBePicked());

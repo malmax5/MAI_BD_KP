@@ -1274,10 +1274,8 @@ std::vector<models::WarehouseCell> WarehouseCellRepository::findCellsForBatch(co
     
     try
     {
-        // Здесь можно добавить логику для поиска ячеек с учетом специфики партии
-        // Например, учитывать температурную зону, срок годности и т.д.
-        double requiredVolume = 1.0; // Заглушка, нужно рассчитать объем партии
-        double requiredWeight = 1.0; // Заглушка, нужно рассчитать вес партии
+        double requiredVolume = 1.0;
+        double requiredWeight = 1.0;
         
         auto availableCells = findAvailableCells(requiredVolume, requiredWeight);
         

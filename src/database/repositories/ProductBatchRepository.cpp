@@ -1679,9 +1679,6 @@ std::vector<models::ProductBatch> ProductBatchRepository::findBatchesForOrderIte
             
             int allocatedQuantity = std::min(batch.quantityAvailable, remainingQuantity);
             
-            // Здесь можно добавить логику для модификации batch для выделения определенного количества
-            // batch.allocatedQuantity = allocatedQuantity;
-            
             result.push_back(batch);
             remainingQuantity -= allocatedQuantity;
         }

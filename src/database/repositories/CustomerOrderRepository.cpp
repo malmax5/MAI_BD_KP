@@ -1365,9 +1365,6 @@ std::unique_ptr<models::CustomerOrder> CustomerOrderRepository::getOrderWithItem
         return nullptr;
     }
     
-    // Здесь можно добавить логику для получения связанных отгрузок
-    // Пока возвращаем заказ только с позициями
-    
     return order;
 }
 
@@ -1604,7 +1601,6 @@ std::string CustomerOrderRepository::generateOrderNumber()
     }
     catch (const Poco::Exception& e)
     {
-        // Если произошла ошибка, используем временную метку
         return "ORD-TEMP-" + std::to_string(std::time(nullptr));
     }
 }
