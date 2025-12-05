@@ -236,7 +236,11 @@ long long CustomerOrderRepository::create(const models::CustomerOrder& order)
         std::string priorityStrCopy = priorityStr;
         std::string notesCopy = order.notes;
         std::string estimatedDeliveryDateCopy = order.estimatedDeliveryDate;
-        std::string actualDeliveryDateCopy = order.actualDeliveryDate;
+        
+        Poco::Nullable<std::string> actualDeliveryDateCopy;
+        if (!order.actualDeliveryDate.empty())
+            actualDeliveryDateCopy = order.actualDeliveryDate;
+            
         long long createdByCopy = order.createdBy;
         
         Poco::Data::Statement insert(connection->getSession());
