@@ -44,6 +44,7 @@ public:
     bool validate() const;
     
     void calculateLineTotal();
+    double calculateLineTotal() const;
     bool canBePicked() const;
     bool isFullyShipped() const;
     double getDiscountedPrice() const;

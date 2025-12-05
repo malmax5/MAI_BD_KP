@@ -177,6 +177,11 @@ void OrderItem::calculateLineTotal()
     lineTotal = discountedPrice * quantityOrdered;
 }
 
+double OrderItem::calculateLineTotal() const
+{
+    return unitPrice * (1.0 - discountPercent / 100.0) * quantityOrdered;
+}
+
 bool OrderItem::canBePicked() const
 {
     return pickingStatus == PickingStatus::NOT_STARTED || 
