@@ -32,6 +32,14 @@ add_executable(warehouse_backend
     database/repositories/SupplierRepository.cpp
     database/repositories/CategoryRepository.cpp
     database/repositories/ProductRepository.cpp
+    database/repositories/WarehouseCellRepository.cpp
+    database/repositories/ProductBatchRepository.cpp
+    database/repositories/CustomerOrderRepository.cpp
+    database/repositories/OrderItemRepository.cpp
+    database/repositories/ShipmentRepository.cpp
+    database/repositories/InventoryMovementRepository.cpp
+    database/repositories/AuditLogRepository.cpp
+    database/repositories/OrderPaymentRepository.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -46,6 +54,7 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/config
+        ${LIBSODIUM_INCLUDE_DIRS}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
@@ -59,6 +68,7 @@ target_link_libraries(warehouse_backend
         Poco::Data
         Poco::DataPostgreSQL
         ${PostgreSQL_LIBRARIES}
+        ${LIBSODIUM_LIBRARIES}
         pthread
         dl
 )
