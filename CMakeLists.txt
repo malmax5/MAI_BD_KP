@@ -38,7 +38,11 @@ find_package(Poco REQUIRED COMPONENTS
     JSON
     Data
     DataPostgreSQL
+    JWT
 )
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBSODIUM REQUIRED libsodium)
 
 if(Poco_VERSION VERSION_LESS 1.10.0)
     message(WARNING "POCO version ${Poco_VERSION} is older than recommended 1.10.0")

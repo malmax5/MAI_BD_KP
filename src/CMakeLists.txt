@@ -40,6 +40,9 @@ add_executable(warehouse_backend
     database/repositories/InventoryMovementRepository.cpp
     database/repositories/AuditLogRepository.cpp
     database/repositories/OrderPaymentRepository.cpp
+
+    #services
+    services/AuthService.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -67,6 +70,7 @@ target_link_libraries(warehouse_backend
         Poco::JSON
         Poco::Data
         Poco::DataPostgreSQL
+        Poco::JWT
         ${PostgreSQL_LIBRARIES}
         ${LIBSODIUM_LIBRARIES}
         pthread
