@@ -43,6 +43,7 @@ add_executable(warehouse_backend
 
     #services
     services/AuthService.cpp
+    services/UserService.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -54,6 +55,7 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_SOURCE_DIR}/database/models
         ${CMAKE_CURRENT_SOURCE_DIR}/database/repositories
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
+        ${CMAKE_CURRENT_SOURCE_DIR}/services
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/config
