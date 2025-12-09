@@ -52,21 +52,21 @@ std::unique_ptr<models::Product> ProductRepository::findById(long long id)
         if (rs.rowCount() > 0)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -104,21 +104,21 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findAll()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -163,21 +163,21 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findPaginated(i
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -200,20 +200,7 @@ long long ProductRepository::create(const models::Product& product)
     {
         beginTransaction(*connection);
         
-        std::string sku = product.sku;
-        std::string name = product.name;
-        std::string description = product.description;
-        Poco::Int64 categoryId = static_cast<Poco::Int64>(product.categoryId);
-        Poco::Int64 supplierId = static_cast<Poco::Int64>(product.supplierId);
-        double unitPrice = product.unitPrice;
-        double weight = product.weight;
-        std::string dimensions = product.dimensions;
-        int minStockLevel = product.minStockLevel;
-        int maxStockLevel = product.maxStockLevel;
-        bool isActive = product.isActive;
-        
-        std::string createdAt = product.createdAt.empty() ? 
-            DateUtils::formatDateTime(DateUtils::now()) : product.createdAt;
+        models::Product productCopy = product;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -224,18 +211,18 @@ long long ProductRepository::create(const models::Product& product)
                   "max_stock_level, is_active, created_at) "
                   "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "
                   "RETURNING id",
-            Poco::Data::Keywords::use(sku),
-            Poco::Data::Keywords::use(name),
-            Poco::Data::Keywords::use(description),
-            Poco::Data::Keywords::use(categoryId),
-            Poco::Data::Keywords::use(supplierId),
-            Poco::Data::Keywords::use(unitPrice),
-            Poco::Data::Keywords::use(weight),
-            Poco::Data::Keywords::use(dimensions),
-            Poco::Data::Keywords::use(minStockLevel),
-            Poco::Data::Keywords::use(maxStockLevel),
-            Poco::Data::Keywords::use(isActive),
-            Poco::Data::Keywords::use(createdAt),
+            Poco::Data::Keywords::use(productCopy.sku),
+            Poco::Data::Keywords::use(productCopy.name),
+            Poco::Data::Keywords::use(productCopy.description),
+            Poco::Data::Keywords::use(productCopy.categoryId),
+            Poco::Data::Keywords::use(productCopy.supplierId),
+            Poco::Data::Keywords::use(productCopy.unitPrice),
+            Poco::Data::Keywords::use(productCopy.weight),
+            Poco::Data::Keywords::use(productCopy.dimensions),
+            Poco::Data::Keywords::use(productCopy.minStockLevel),
+            Poco::Data::Keywords::use(productCopy.maxStockLevel),
+            Poco::Data::Keywords::use(productCopy.isActive),
+            Poco::Data::Keywords::use(productCopy.createdAt),
             Poco::Data::Keywords::into(newId),
             now;
         
@@ -257,18 +244,9 @@ bool ProductRepository::update(long long id, const models::Product& product)
     {
         beginTransaction(*connection);
         
-        std::string sku = product.sku;
-        std::string name = product.name;
-        std::string description = product.description;
-        Poco::Int64 categoryId = static_cast<Poco::Int64>(product.categoryId);
-        Poco::Int64 supplierId = static_cast<Poco::Int64>(product.supplierId);
-        double unitPrice = product.unitPrice;
-        double weight = product.weight;
-        std::string dimensions = product.dimensions;
-        int minStockLevel = product.minStockLevel;
-        int maxStockLevel = product.maxStockLevel;
-        bool isActive = product.isActive;
-        Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
+        models::Product productCopy = product;
+
+        Poco::Int64 pocoId = id;
         
         Poco::Data::Statement update(connection->getSession());
         update << "UPDATE " << TABLE_NAME << " SET "
@@ -276,17 +254,17 @@ bool ProductRepository::update(long long id, const models::Product& product)
                   "supplier_id = $5, unit_price = $6, weight = $7, dimensions = $8, "
                   "min_stock_level = $9, max_stock_level = $10, is_active = $11 "
                   "WHERE id = $12",
-            Poco::Data::Keywords::use(sku),
-            Poco::Data::Keywords::use(name),
-            Poco::Data::Keywords::use(description),
-            Poco::Data::Keywords::use(categoryId),
-            Poco::Data::Keywords::use(supplierId),
-            Poco::Data::Keywords::use(unitPrice),
-            Poco::Data::Keywords::use(weight),
-            Poco::Data::Keywords::use(dimensions),
-            Poco::Data::Keywords::use(minStockLevel),
-            Poco::Data::Keywords::use(maxStockLevel),
-            Poco::Data::Keywords::use(isActive),
+            Poco::Data::Keywords::use(productCopy.sku),
+            Poco::Data::Keywords::use(productCopy.name),
+            Poco::Data::Keywords::use(productCopy.description),
+            Poco::Data::Keywords::use(productCopy.categoryId),
+            Poco::Data::Keywords::use(productCopy.supplierId),
+            Poco::Data::Keywords::use(productCopy.unitPrice),
+            Poco::Data::Keywords::use(productCopy.weight),
+            Poco::Data::Keywords::use(productCopy.dimensions),
+            Poco::Data::Keywords::use(productCopy.minStockLevel),
+            Poco::Data::Keywords::use(productCopy.maxStockLevel),
+            Poco::Data::Keywords::use(productCopy.isActive),
             Poco::Data::Keywords::use(pocoId),
             now;
         
@@ -468,21 +446,21 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findByField(
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -524,21 +502,21 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::search(
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -598,21 +576,21 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findActiveProdu
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -650,21 +628,21 @@ std::vector<std::unique_ptr<models::Product>> ProductRepository::findInactivePro
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto product = std::make_unique<models::Product>();
-            product->id = rs.value("id", 0).convert<long long>();
-            product->sku = rs.value("sku").convert<std::string>();
-            product->name = rs.value("name").convert<std::string>();
-            product->description = rs.value("description").convert<std::string>();
-            product->categoryId = rs.value("category_id", 0).convert<long long>();
-            product->supplierId = rs.value("supplier_id", 0).convert<long long>();
-            product->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            product->weight = rs.value("weight", 0.0).convert<double>();
-            product->dimensions = rs.value("dimensions").convert<std::string>();
-            product->minStockLevel = rs.value("min_stock_level", 0).convert<int>();
-            product->maxStockLevel = rs.value("max_stock_level", 0).convert<int>();
-            product->isActive = rs.value("is_active", false).convert<bool>();
-            product->createdAt = rs.value("created_at").convert<std::string>();
-            product->categoryName = rs.value("category_name").convert<std::string>();
-            product->supplierName = rs.value("supplier_name").convert<std::string>();
+            product->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            product->sku = rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>();
+            product->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            product->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
+            product->categoryId = rs.value("category_id").isEmpty() ? 0 : rs.value("category_id").convert<long long>();
+            product->supplierId = rs.value("supplier_id").isEmpty() ? 0 : rs.value("supplier_id").convert<long long>();
+            product->unitPrice = rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>();
+            product->weight = rs.value("weight").isEmpty() ? 0.0 : rs.value("weight").convert<double>();
+            product->dimensions = rs.value("dimensions").isEmpty() ? "" : rs.value("dimensions").convert<std::string>();
+            product->minStockLevel = rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>();
+            product->maxStockLevel = rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>();
+            product->isActive = rs.value("is_active").isEmpty() ? false : rs.value("is_active").convert<bool>();
+            product->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+            product->categoryName = rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>();
+            product->supplierName = rs.value("supplier_name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             
             calculateCurrentStock(*product);
             
@@ -1056,11 +1034,11 @@ Poco::JSON::Array ProductRepository::getProductStatistics()
         if (rs.rowCount() > 0)
         {
             Poco::JSON::Object activityStat;
-            activityStat.set("total_products", rs.value("total_products", 0).convert<int>());
-            activityStat.set("active_products", rs.value("active_products", 0).convert<int>());
-            activityStat.set("avg_price", rs.value("avg_price", 0.0).convert<double>());
-            activityStat.set("min_price", rs.value("min_price", 0.0).convert<double>());
-            activityStat.set("max_price", rs.value("max_price", 0.0).convert<double>());
+            activityStat.set("total_products", rs.value("total_products").isEmpty() ? 0 : rs.value("total_products").convert<int>());
+            activityStat.set("active_products", rs.value("active_products").isEmpty() ? 0 : rs.value("active_products").convert<int>());
+            activityStat.set("avg_price", rs.value("avg_price").isEmpty() ? 0.0 : rs.value("avg_price").convert<double>());
+            activityStat.set("min_price", rs.value("min_price").isEmpty() ? 0.0 : rs.value("min_price").convert<double>());
+            activityStat.set("max_price", rs.value("max_price").isEmpty() ? 0.0 : rs.value("max_price").convert<double>());
             statsArray.add(activityStat);
         }
         
@@ -1079,11 +1057,13 @@ Poco::JSON::Array ProductRepository::getProductStatistics()
         for (size_t i = 0; i < rsCategories.rowCount(); ++i)
         {
             Poco::JSON::Object categoryStat;
-            categoryStat.set("category_name", rsCategories.value("category_name").convert<std::string>());
-            categoryStat.set("product_count", rsCategories.value("product_count", 0).convert<int>());
-            categoryStat.set("avg_price", rsCategories.value("avg_price", 0.0).convert<double>());
-            categoryStat.set("active_products", rsCategories.value("active_products", 0).convert<int>());
+            categoryStat.set("category_name", rsCategories.value("category_name").isEmpty() ? "" : rsCategories.value("category_name").convert<std::string>());
+            categoryStat.set("product_count", rsCategories.value("product_count").isEmpty() ? 0 : rsCategories.value("product_count").convert<int>());
+            categoryStat.set("avg_price", rsCategories.value("avg_price").isEmpty() ? 0.0 : rsCategories.value("avg_price").convert<double>());
+            categoryStat.set("active_products", rsCategories.value("active_products").isEmpty() ? 0 : rsCategories.value("active_products").convert<int>());
             statsArray.add(categoryStat);
+
+            rsCategories.moveNext();
         }
         
         Poco::Data::Statement supplierStats(connection->getSession());
@@ -1102,11 +1082,13 @@ Poco::JSON::Array ProductRepository::getProductStatistics()
         for (size_t i = 0; i < rsSuppliers.rowCount(); ++i)
         {
             Poco::JSON::Object supplierStat;
-            supplierStat.set("supplier_name", rsSuppliers.value("supplier_name").convert<std::string>());
-            supplierStat.set("product_count", rsSuppliers.value("product_count", 0).convert<int>());
-            supplierStat.set("avg_price", rsSuppliers.value("avg_price", 0.0).convert<double>());
-            supplierStat.set("active_products", rsSuppliers.value("active_products", 0).convert<int>());
+            supplierStat.set("supplier_name", rsSuppliers.value("supplier_name").isEmpty() ? "" : rsSuppliers.value("supplier_name").convert<std::string>());
+            supplierStat.set("product_count", rsSuppliers.value("product_count").isEmpty() ? 0 : rsSuppliers.value("product_count").convert<int>());
+            supplierStat.set("avg_price", rsSuppliers.value("avg_price").isEmpty() ? 0.0 : rsSuppliers.value("avg_price").convert<double>());
+            supplierStat.set("active_products", rsSuppliers.value("active_products").isEmpty() ? 0 : rsSuppliers.value("active_products").convert<int>());
             statsArray.add(supplierStat);
+
+            rsSuppliers.moveNext();
         }
     }
     catch (const Poco::Exception& e)
@@ -1148,16 +1130,16 @@ Poco::JSON::Array ProductRepository::getStockReport()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object report;
-            report.set("product_id", rs.value("id", 0).convert<long long>());
-            report.set("sku", rs.value("sku").convert<std::string>());
-            report.set("name", rs.value("name").convert<std::string>());
-            report.set("category_name", rs.value("category_name").convert<std::string>());
-            report.set("current_stock", rs.value("current_stock", 0).convert<int>());
-            report.set("min_stock_level", rs.value("min_stock_level", 0).convert<int>());
-            report.set("max_stock_level", rs.value("max_stock_level", 0).convert<int>());
-            report.set("unit_price", rs.value("unit_price", 0.0).convert<double>());
-            report.set("stock_value", rs.value("stock_value", 0.0).convert<double>());
-            report.set("stock_status", rs.value("stock_status").convert<std::string>());
+            report.set("product_id", rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>());
+            report.set("sku", rs.value("sku").isEmpty() ? "" : rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>());
+            report.set("name", rs.value("name").isEmpty() ? "" : rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>());
+            report.set("category_name", rs.value("category_name").isEmpty() ? "" : rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>());
+            report.set("current_stock", rs.value("current_stock").isEmpty() ? 0 : rs.value("current_stock").convert<int>());
+            report.set("min_stock_level", rs.value("min_stock_level").isEmpty() ? 0 : rs.value("min_stock_level").convert<int>());
+            report.set("max_stock_level", rs.value("max_stock_level").isEmpty() ? 0 : rs.value("max_stock_level").convert<int>());
+            report.set("unit_price", rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>());
+            report.set("stock_value", rs.value("stock_value").isEmpty() ? 0.0 : rs.value("stock_value").convert<double>());
+            report.set("stock_status", rs.value("stock_status").isEmpty() ? "" : rs.value("stock_status").convert<std::string>());
             reportArray.add(report);
         }
     }
@@ -1200,15 +1182,15 @@ Poco::JSON::Array ProductRepository::getPriceAnalysisReport()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object report;
-            report.set("product_id", rs.value("id", 0).convert<long long>());
-            report.set("sku", rs.value("sku").convert<std::string>());
-            report.set("name", rs.value("name").convert<std::string>());
-            report.set("category_name", rs.value("category_name").convert<std::string>());
-            report.set("supplier_name", rs.value("supplier_name").convert<std::string>());
-            report.set("unit_price", rs.value("unit_price", 0.0).convert<double>());
-            report.set("avg_cost", rs.value("avg_cost", 0.0).convert<double>());
-            report.set("margin", rs.value("margin", 0.0).convert<double>());
-            report.set("margin_percent", rs.value("margin_percent", 0.0).convert<double>());
+            report.set("product_id", rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>());
+            report.set("sku", rs.value("sku").isEmpty() ? "" : rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>());
+            report.set("name", rs.value("name").isEmpty() ? "" : rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>());
+            report.set("category_name", rs.value("category_name").isEmpty() ? "" : rs.value("category_name").isEmpty() ? "" : rs.value("category_name").convert<std::string>());
+            report.set("supplier_name", rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>());
+            report.set("unit_price", rs.value("unit_price").isEmpty() ? 0.0 : rs.value("unit_price").convert<double>());
+            report.set("avg_cost", rs.value("avg_cost", 0.0).isEmpty() ? 0.0 : rs.value("avg_cost").convert<double>());
+            report.set("margin", rs.value("margin", 0.0).isEmpty() ? 0.0 : rs.value("margin").convert<double>());
+            report.set("margin_percent", rs.value("margin_percent", 0.0).isEmpty() ? 0.0 : rs.value("margin_percent").convert<double>());
             reportArray.add(report);
         }
     }
@@ -1236,8 +1218,8 @@ std::vector<std::pair<long long, std::string>> ProductRepository::getProductName
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            long long id = rs.value("id", 0).convert<long long>();
-            std::string name = rs.value("name").convert<std::string>();
+            long long id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            std::string name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             productNames.emplace_back(id, name);
         }
     }

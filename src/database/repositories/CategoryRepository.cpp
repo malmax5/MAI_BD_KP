@@ -51,18 +51,18 @@ std::unique_ptr<models::Category> CategoryRepository::findById(long long id)
         if (rs.rowCount() > 0)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             
-            if (category->parentId > 0)
+            if (category->parentId.value() > 0)
             {
                 Poco::Data::Statement parentSelect(connection->getSession());
-                Poco::Int64 parentIdCopy = category->parentId;
+                Poco::Int64 parentIdCopy = category->parentId.value();
                 parentSelect << "SELECT name FROM " << TABLE_NAME << " WHERE id = $1",
                     Poco::Data::Keywords::use(parentIdCopy),
                     now;
@@ -70,7 +70,7 @@ std::unique_ptr<models::Category> CategoryRepository::findById(long long id)
                 Poco::Data::RecordSet parentRs(parentSelect);
                 if (parentRs.rowCount() > 0)
                 {
-                    category->parentName = parentRs.value("name").convert<std::string>();
+                    category->parentName = parentRs.value("name").isEmpty() ? "" : parentRs.value("name").convert<std::string>();
                 }
             }
             
@@ -102,13 +102,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findAll()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -144,13 +144,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findPaginated
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -170,32 +170,23 @@ long long CategoryRepository::create(const models::Category& category)
     {
         beginTransaction(*connection);
         
-        std::string createdAt = category.createdAt.empty() ? 
-            DateUtils::formatDateTime(DateUtils::now()) : category.createdAt;
-        
-        std::string nameCopy = category.name;
-        std::string descriptionCopy = category.description;
-        long long parentIdCopy = category.parentId;
-        std::string pathCopy = category.path;
-        int sortOrderCopy = category.sortOrder;
-        std::string createdAtCopy = createdAt;
+        models::Category categoryCopy = category;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
         
-        if (parentIdCopy > 0)
+        if (!categoryCopy.parentId.isNull())
         {
-            Poco::Int64 parentIdCopy = static_cast<Poco::Int64>(category.parentId);
             insert << "INSERT INTO " << TABLE_NAME << " "
                       "(name, description, parent_id, path, sort_order, created_at) "
                       "VALUES ($1, $2, $3, $4, $5, $6) "
                       "RETURNING id",
-                Poco::Data::Keywords::use(nameCopy),
-                Poco::Data::Keywords::use(descriptionCopy),
-                Poco::Data::Keywords::use(parentIdCopy),
-                Poco::Data::Keywords::use(pathCopy),
-                Poco::Data::Keywords::use(sortOrderCopy),
-                Poco::Data::Keywords::use(createdAtCopy),
+                Poco::Data::Keywords::use(categoryCopy.name),
+                Poco::Data::Keywords::use(categoryCopy.description),
+                Poco::Data::Keywords::use(categoryCopy.parentId),
+                Poco::Data::Keywords::use(categoryCopy.path),
+                Poco::Data::Keywords::use(categoryCopy.sortOrder),
+                Poco::Data::Keywords::use(categoryCopy.createdAt),
                 Poco::Data::Keywords::into(newId),
                 now;
         }
@@ -205,11 +196,11 @@ long long CategoryRepository::create(const models::Category& category)
                       "(name, description, parent_id, path, sort_order, created_at) "
                       "VALUES ($1, $2, NULL, $3, $4, $5) "
                       "RETURNING id",
-                Poco::Data::Keywords::use(nameCopy),
-                Poco::Data::Keywords::use(descriptionCopy),
-                Poco::Data::Keywords::use(pathCopy),
-                Poco::Data::Keywords::use(sortOrderCopy),
-                Poco::Data::Keywords::use(createdAtCopy),
+                Poco::Data::Keywords::use(categoryCopy.name),
+                Poco::Data::Keywords::use(categoryCopy.description),
+                Poco::Data::Keywords::use(categoryCopy.path),
+                Poco::Data::Keywords::use(categoryCopy.sortOrder),
+                Poco::Data::Keywords::use(categoryCopy.createdAt),
                 Poco::Data::Keywords::into(newId),
                 now;
         }
@@ -305,7 +296,7 @@ bool CategoryRepository::remove(long long id)
             Poco::Data::RecordSet rsChildren(getChildren);
             for (size_t i = 0; i < rsChildren.rowCount(); ++i)
             {
-                long long childId = rsChildren.value("id", 0).convert<long long>();
+                long long childId = rsChildren.value("id").isEmpty() ? 0 : rsChildren.value("id").convert<long long>();
                 stack.push(childId);
             }
         }
@@ -319,7 +310,7 @@ bool CategoryRepository::remove(long long id)
             
             Poco::Data::RecordSet rsProducts(checkProducts);
             if (rsProducts.rowCount() > 0) {
-                int productCount = rsProducts.value(0, 0).convert<int>();
+                int productCount = rsProducts.value(0).isEmpty() ? 0 : rsProducts.value(0).convert<int>();
                 if (productCount > 0) {
                     throw std::runtime_error("Cannot delete category with associated products");
                 }
@@ -376,7 +367,7 @@ int CategoryRepository::count()
         Poco::Data::RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -434,16 +425,16 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findByField(
         
         Poco::Data::RecordSet rs(select);
         
-        for (size_t i = 0; i < rs.rowCount(); ++i)
+        for (size_t i = 0; i <rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -477,13 +468,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::search(
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -513,13 +504,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findRootCateg
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = 0;
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -551,13 +542,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findChildCate
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -590,13 +581,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findCategorie
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -629,13 +620,13 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findLeafCateg
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id", 0).convert<long long>();
-            category->name = rs.value("name").convert<std::string>();
-            category->description = rs.value("description").convert<std::string>();
+            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
+            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
             category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order", 0).convert<int>();
-            category->createdAt = rs.value("created_at").convert<std::string>();
+            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
+            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
+            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
             categories.push_back(std::move(category));
         }
     }
@@ -669,7 +660,7 @@ bool CategoryRepository::updateParent(long long id, long long newParentId)
             int count = 0;
             if (rs.rowCount() > 0)
             {
-                count = rs.value(0, 0).convert<int>();
+                count = rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
             }
             
             if (count == 0)
@@ -789,7 +780,7 @@ int CategoryRepository::countRootCategories()
         Poco::Data::RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -828,7 +819,7 @@ int CategoryRepository::countProductsInCategory(long long categoryId)
         Poco::Data::RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -881,13 +872,13 @@ long long CategoryRepository::getParentIdFromVar(const Poco::Dynamic::Var& var) 
 models::Category CategoryRepository::mapRowToCategory(Poco::Data::Row& row) const
 {
     models::Category category;
-    category.id = row.get(0).convert<long long>();
-    category.name = row.get(1).convert<std::string>();
-    category.description = row.get(2).convert<std::string>();
-    category.parentId = row.get(3).convert<long long>();
-    category.path = row.get(4).convert<std::string>();
-    category.sortOrder = row.get(5).convert<int>();
-    category.createdAt = row.get(6).convert<std::string>();
+    category.id = row.get(0).isEmpty() ? 0 : row.get(0).convert<long long>();
+    category.name = row.get(1).isEmpty() ? "" : row.get(1).convert<std::string>();
+    category.description = row.get(2).isEmpty() ? "" : row.get(2).convert<std::string>();
+    category.parentId = row.get(3).isEmpty() ? 0 : row.get(3).convert<long long>();
+    category.path = row.get(4).isEmpty() ? "" : row.get(4).convert<std::string>();
+    category.sortOrder = row.get(5).isEmpty() ? 0 : row.get(5).convert<int>();
+    category.createdAt = row.get(6).isEmpty() ? "" : row.get(6).convert<std::string>();
     return category;
 }
 

@@ -85,12 +85,12 @@ Poco::JSON::Object ProductBatch::toJson() const
     json.set("quantity_available", quantityAvailable);
     json.set("unit_cost", unitCost);
     
-    if (!manufactureDate.empty())
+    if (!manufactureDate.isNull())
     {
         json.set("manufacture_date", manufactureDate);
     }
     
-    if (!expirationDate.empty())
+    if (!expirationDate.isNull())
     {
         json.set("expiration_date", expirationDate);
     }
@@ -99,7 +99,7 @@ Poco::JSON::Object ProductBatch::toJson() const
     json.set("storage_cell_id", storageCellId);
     json.set("quality_status", qualityStatusToString(qualityStatus));
     
-    if (!invoiceNumber.empty())
+    if (!invoiceNumber.isNull())
     {
         json.set("invoice_number", invoiceNumber);
     }
@@ -165,12 +165,12 @@ bool ProductBatch::validate() const
         return false;
     }
     
-    if (!manufactureDate.empty() && !Validator::isValidDate(manufactureDate))
+    if (!manufactureDate.isNull() && !Validator::isValidDate(manufactureDate.value()))
     {
         return false;
     }
     
-    if (!expirationDate.empty() && !Validator::isValidDate(expirationDate))
+    if (!expirationDate.isNull() && !Validator::isValidDate(expirationDate.value()))
     {
         return false;
     }
@@ -180,7 +180,7 @@ bool ProductBatch::validate() const
 
 bool ProductBatch::isExpired() const
 {
-    if (expirationDate.empty())
+    if (expirationDate.isNull())
     {
         return false;
     }
@@ -199,7 +199,7 @@ bool ProductBatch::isExpired() const
 
 int ProductBatch::daysUntilExpiration() const
 {
-    if (expirationDate.empty())
+    if (expirationDate.isNull())
     {
         return INT_MAX;
     }

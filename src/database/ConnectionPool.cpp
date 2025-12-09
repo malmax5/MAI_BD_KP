@@ -294,6 +294,19 @@ void ConnectionPool::releaseConnection(size_t index)
     {
         return;
     }
+
+    if (pooledConn.connection && pooledConn.connection->isTransactionActive())
+    {
+        try
+        {
+            pooledConn.connection->rollbackTransaction();
+        }
+        catch (const std::exception& e)
+        {
+            std::cerr << "Warning: Failed to handle transaction on connection release: " 
+                      << e.what() << std::endl;
+        }
+    }
     
     pooledConn.inUse = false;
     pooledConn.lastUsedAt = std::chrono::steady_clock::now();

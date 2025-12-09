@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -17,23 +18,23 @@ enum class PickingStatus
 class OrderItem
 {
 public:
-    long long id;
-    long long orderId;
-    long long productId;
-    long long batchId;
+    Poco::Int64 id;
+    Poco::Int64 orderId;
+    Poco::Int64 productId;
+    Poco::Int64 batchId;
     int quantityOrdered;
     int quantityShipped;
     double unitPrice;
     double discountPercent;
     double lineTotal;
     PickingStatus pickingStatus;
-    long long pickedBy;
-    std::string pickedAt;
+    Poco::Nullable<Poco::Int64> pickedBy;
+    Poco::Nullable<std::string> pickedAt;
 
     std::string productName;
     std::string productSku;
     std::string batchNumber;
-    std::string pickedByName;
+    Poco::Nullable<std::string> pickedByName;
 
     OrderItem();
     explicit OrderItem(const Poco::JSON::Object& json);

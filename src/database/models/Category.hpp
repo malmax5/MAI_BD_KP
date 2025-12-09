@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -11,15 +12,15 @@ namespace warehouse_backend::database::models
 class Category
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string name;
-    std::string description;
-    long long parentId;
-    std::string path;
+    Poco::Nullable<std::string> description;
+    Poco::Nullable<Poco::Int64> parentId;
+    Poco::Nullable<std::string> path;
     int sortOrder;
-    std::string createdAt;
+    Poco::Nullable<std::string> createdAt;
 
-    std::string parentName;
+    Poco::Nullable<std::string> parentName;
     std::vector<std::shared_ptr<Category>> children;
 
     Category();
@@ -32,7 +33,7 @@ public:
     
     bool validate() const;
     
-    bool isRoot() const { return parentId == 0; }
+    bool isRoot() const { return !parentId.isNull() && parentId.value() == 0; }
     void addChild(const std::shared_ptr<Category>& child);
     
     static constexpr int MAX_NAME_LENGTH = 100;

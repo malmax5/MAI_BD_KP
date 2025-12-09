@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -18,20 +19,20 @@ enum class ShipmentStatus
 class Shipment
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string shipmentNumber;
-    long long orderId;
+    Poco::Int64 orderId;
     std::string carrier;
-    std::string trackingNumber;
-    std::string shippingMethod;
-    double shippingCost;
+    Poco::Nullable<std::string> trackingNumber;
+    Poco::Nullable<std::string> shippingMethod;
+    Poco::Nullable<double> shippingCost;
     std::string shipmentDate;
-    std::string estimatedArrival;
-    std::string actualArrival;
+    Poco::Nullable<std::string> estimatedArrival;
+    Poco::Nullable<std::string> actualArrival;
     ShipmentStatus status;
-    std::string notes;
-    double weightTotal;
-    std::string dimensionsTotal;
+    Poco::Nullable<std::string> notes;
+    Poco::Nullable<double> weightTotal;
+    Poco::Nullable<std::string> dimensionsTotal;
 
     std::string orderNumber;
     std::string customerName;

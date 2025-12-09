@@ -70,12 +70,12 @@ Poco::JSON::Object Shipment::toJson() const
     json.set("order_id", orderId);
     json.set("carrier", carrier);
     
-    if (!trackingNumber.empty())
+    if (!trackingNumber.isNull())
     {
         json.set("tracking_number", trackingNumber);
     }
     
-    if (!shippingMethod.empty())
+    if (!shippingMethod.isNull())
     {
         json.set("shipping_method", shippingMethod);
     }
@@ -83,26 +83,26 @@ Poco::JSON::Object Shipment::toJson() const
     json.set("shipping_cost", shippingCost);
     json.set("shipment_date", shipmentDate);
     
-    if (!estimatedArrival.empty())
+    if (!estimatedArrival.isNull())
     {
         json.set("estimated_arrival", estimatedArrival);
     }
     
-    if (!actualArrival.empty())
+    if (!actualArrival.isNull())
     {
         json.set("actual_arrival", actualArrival);
     }
     
     json.set("status", statusToString(status));
     
-    if (!notes.empty())
+    if (!notes.isNull())
     {
         json.set("notes", notes);
     }
     
     json.set("weight_total", weightTotal);
     
-    if (!dimensionsTotal.empty())
+    if (!dimensionsTotal.isNull())
     {
         json.set("dimensions_total", dimensionsTotal);
     }
@@ -148,12 +148,12 @@ bool Shipment::validate() const
         return false;
     }
     
-    if (shippingCost < MIN_SHIPPING_COST)
+    if (shippingCost.value() < MIN_SHIPPING_COST)
     {
         return false;
     }
     
-    if (weightTotal < MIN_WEIGHT)
+    if (weightTotal.value() < MIN_WEIGHT)
     {
         return false;
     }
@@ -163,12 +163,12 @@ bool Shipment::validate() const
         return false;
     }
     
-    if (!estimatedArrival.empty() && !Validator::isValidDate(estimatedArrival))
+    if (!estimatedArrival.isNull() && !Validator::isValidDate(estimatedArrival.value()))
     {
         return false;
     }
     
-    if (!actualArrival.empty() && !Validator::isValidDate(actualArrival))
+    if (!actualArrival.isNull() && !Validator::isValidDate(actualArrival.value()))
     {
         return false;
     }

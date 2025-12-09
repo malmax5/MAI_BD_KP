@@ -155,111 +155,31 @@ long long ProductBatchRepository::create(const models::ProductBatch& productBatc
     {
         beginTransaction(*connection);
         
-        std::string batchNumberCopy = productBatch.batchNumber;
-        Poco::Int64 productIdCopy = productBatch.productId;
-        Poco::Int64 supplierIdCopy = productBatch.supplierId;
-        int quantityReceivedCopy = productBatch.quantityReceived;
-        int quantityAvailableCopy = productBatch.quantityAvailable;
-        double unitCostCopy = productBatch.unitCost;
-        std::string manufactureDateCopy = productBatch.manufactureDate;
-        std::string expirationDateCopy = productBatch.expirationDate;
-        std::string arrivalDateCopy = productBatch.arrivalDate.empty() ? 
-            DateUtils::formatDateTime(DateUtils::now()) : productBatch.arrivalDate;
-        Poco::Int64 storageCellIdCopy = productBatch.storageCellId;
+        models::ProductBatch productBatchCopy = productBatch;
+
         std::string qualityStatusStr = models::ProductBatch::qualityStatusToString(productBatch.qualityStatus);
-        std::string invoiceNumberCopy = productBatch.invoiceNumber;
         
         Poco::Int64 newId = 0;
         Statement insert(connection->getSession());
         
-        if (manufactureDateCopy.empty() && expirationDateCopy.empty())
-        {
-            insert << "INSERT INTO " << TABLE_NAME << " "
-                      "(batch_number, product_id, supplier_id, quantity_received, "
-                      "quantity_available, unit_cost, arrival_date, storage_cell_id, "
-                      "quality_status, invoice_number) "
-                      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
-                      "RETURNING id",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                into(newId),
-                now;
-        }
-        else if (manufactureDateCopy.empty())
-        {
-            insert << "INSERT INTO " << TABLE_NAME << " "
-                      "(batch_number, product_id, supplier_id, quantity_received, "
-                      "quantity_available, unit_cost, expiration_date, arrival_date, "
-                      "storage_cell_id, quality_status, invoice_number) "
-                      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::quality_status, $11) "
-                      "RETURNING id",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(expirationDateCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                into(newId),
-                now;
-        }
-        else if (expirationDateCopy.empty())
-        {
-            insert << "INSERT INTO " << TABLE_NAME << " "
-                      "(batch_number, product_id, supplier_id, quantity_received, "
-                      "quantity_available, unit_cost, manufacture_date, arrival_date, "
-                      "storage_cell_id, quality_status, invoice_number) "
-                      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::quality_status, $11) "
-                      "RETURNING id",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(manufactureDateCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                into(newId),
-                now;
-        }
-        else
-        {
-            insert << "INSERT INTO " << TABLE_NAME << " "
-                      "(batch_number, product_id, supplier_id, quantity_received, "
-                      "quantity_available, unit_cost, manufacture_date, expiration_date, "
-                      "arrival_date, storage_cell_id, quality_status, invoice_number) "
-                      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::quality_status, $12) "
-                      "RETURNING id",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(manufactureDateCopy),
-                use(expirationDateCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                into(newId),
-                now;
-        }
+        insert << "INSERT INTO " << TABLE_NAME << " "
+                  "(batch_number, product_id, supplier_id, quantity_received, "
+                  "quantity_available, unit_cost, arrival_date, storage_cell_id, "
+                  "quality_status, invoice_number) "
+                  "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
+                  "RETURNING id",
+            use(productBatchCopy.batchNumber),
+            use(productBatchCopy.productId),
+            use(productBatchCopy.supplierId),
+            use(productBatchCopy.quantityReceived),
+            use(productBatchCopy.quantityAvailable),
+            use(productBatchCopy.unitCost),
+            use(productBatchCopy.arrivalDate),
+            use(productBatchCopy.storageCellId),
+            use(qualityStatusStr),
+            use(productBatchCopy.invoiceNumber),
+            into(newId),
+            now;
         
         commitTransaction(*connection);
         return static_cast<long long>(newId);
@@ -278,108 +198,29 @@ bool ProductBatchRepository::update(long long id, const models::ProductBatch& pr
     try
     {
         beginTransaction(*connection);
+
+        models::ProductBatch productBatchCopy = productBatch;
         
-        std::string batchNumberCopy = productBatch.batchNumber;
-        Poco::Int64 productIdCopy = productBatch.productId;
-        Poco::Int64 supplierIdCopy = productBatch.supplierId;
-        int quantityReceivedCopy = productBatch.quantityReceived;
-        int quantityAvailableCopy = productBatch.quantityAvailable;
-        double unitCostCopy = productBatch.unitCost;
-        std::string manufactureDateCopy = productBatch.manufactureDate;
-        std::string expirationDateCopy = productBatch.expirationDate;
-        std::string arrivalDateCopy = productBatch.arrivalDate;
-        Poco::Int64 storageCellIdCopy = productBatch.storageCellId;
         std::string qualityStatusStr = models::ProductBatch::qualityStatusToString(productBatch.qualityStatus);
-        std::string invoiceNumberCopy = productBatch.invoiceNumber;
-        long long idCopy = id;
         
         Statement update(connection->getSession());
         
-        if (manufactureDateCopy.empty() && expirationDateCopy.empty())
-        {
-            update << "UPDATE " << TABLE_NAME << " SET "
-                      "batch_number = $1, product_id = $2, supplier_id = $3, "
-                      "quantity_received = $4, quantity_available = $5, unit_cost = $6, "
-                      "arrival_date = $7, storage_cell_id = $8, quality_status = $9::quality_status, "
-                      "invoice_number = $10 WHERE id = $11",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                use(idCopy),
-                now;
-        }
-        else if (manufactureDateCopy.empty())
-        {
-            update << "UPDATE " << TABLE_NAME << " SET "
-                      "batch_number = $1, product_id = $2, supplier_id = $3, "
-                      "quantity_received = $4, quantity_available = $5, unit_cost = $6, "
-                      "expiration_date = $7, arrival_date = $8, storage_cell_id = $9, "
-                      "quality_status = $10::quality_status, invoice_number = $11 WHERE id = $12",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(expirationDateCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                use(idCopy),
-                now;
-        }
-        else if (expirationDateCopy.empty())
-        {
-            update << "UPDATE " << TABLE_NAME << " SET "
-                      "batch_number = $1, product_id = $2, supplier_id = $3, "
-                      "quantity_received = $4, quantity_available = $5, unit_cost = $6, "
-                      "manufacture_date = $7, arrival_date = $8, storage_cell_id = $9, "
-                      "quality_status = $10::quality_status, invoice_number = $11 WHERE id = $12",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(manufactureDateCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                use(idCopy),
-                now;
-        }
-        else
-        {
-            update << "UPDATE " << TABLE_NAME << " SET "
-                      "batch_number = $1, product_id = $2, supplier_id = $3, "
-                      "quantity_received = $4, quantity_available = $5, unit_cost = $6, "
-                      "manufacture_date = $7, expiration_date = $8, arrival_date = $9, "
-                      "storage_cell_id = $10, quality_status = $11::quality_status, "
-                      "invoice_number = $12 WHERE id = $13",
-                use(batchNumberCopy),
-                use(productIdCopy),
-                use(supplierIdCopy),
-                use(quantityReceivedCopy),
-                use(quantityAvailableCopy),
-                use(unitCostCopy),
-                use(manufactureDateCopy),
-                use(expirationDateCopy),
-                use(arrivalDateCopy),
-                use(storageCellIdCopy),
-                use(qualityStatusStr),
-                use(invoiceNumberCopy),
-                use(idCopy),
-                now;
-        }
+        update << "UPDATE " << TABLE_NAME << " SET "
+                  "batch_number = $1, product_id = $2, supplier_id = $3, "
+                  "quantity_received = $4, quantity_available = $5, unit_cost = $6, "
+                  "arrival_date = $7, storage_cell_id = $8, quality_status = $9::quality_status, "
+                  "invoice_number = $10 WHERE id = $11",
+            use(productBatchCopy.batchNumber),
+            use(productBatchCopy.productId),
+            use(productBatchCopy.supplierId),
+            use(productBatchCopy.quantityReceived),
+            use(productBatchCopy.quantityAvailable),
+            use(productBatchCopy.unitCost),
+            use(productBatchCopy.arrivalDate),
+            use(productBatchCopy.storageCellId),
+            use(qualityStatusStr),
+            use(productBatchCopy.invoiceNumber),
+            use(productBatchCopy.id);
         
         int rowsAffected = update.execute();
         
@@ -863,6 +704,10 @@ std::vector<std::unique_ptr<models::ProductBatch>> ProductBatchRepository::findA
     {
         long long productIdCopy = productId;
         int quantityCopy = quantity;
+
+        std::cout << "Connection is connected: " << connection->isConnected() << std::endl;
+        std::cout << "AutoCommit: " << connection->getAutoCommit() << std::endl;
+        std::cout << "Transaction active: " << connection->isTransactionActive() << std::endl;
         
         Statement select(connection->getSession());
         select << "SELECT pb.id, pb.batch_number, pb.product_id, pb.supplier_id, "

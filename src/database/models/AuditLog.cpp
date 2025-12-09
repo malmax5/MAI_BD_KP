@@ -63,12 +63,12 @@ Poco::JSON::Object AuditLog::toJson() const
     json.set("record_id", recordId);
     json.set("action", auditActionToString(action));
     
-    if (!oldValues.empty())
+    if (!oldValues.isNull())
     {
         json.set("old_values", oldValues);
     }
     
-    if (!newValues.empty())
+    if (!newValues.isNull())
     {
         json.set("new_values", newValues);
     }
@@ -76,17 +76,17 @@ Poco::JSON::Object AuditLog::toJson() const
     json.set("changed_by", changedBy);
     json.set("changed_at", changedAt);
     
-    if (!ipAddress.empty())
+    if (!ipAddress.isNull())
     {
         json.set("ip_address", ipAddress);
     }
     
-    if (!userAgent.empty())
+    if (!userAgent.isNull())
     {
         json.set("user_agent", userAgent);
     }
     
-    if (!description.empty())
+    if (!description.isNull())
     {
         json.set("description", description);
     }
@@ -134,12 +134,12 @@ bool AuditLog::validate() const
         return false;
     }
     
-    if (!changedAt.empty() && !Validator::isValidDateTime(changedAt))
+    if (!changedAt.isNull() && !Validator::isValidDateTime(changedAt.value()))
     {
         return false;
     }
     
-    if (!ipAddress.empty() && ipAddress.length() > MAX_IP_ADDRESS)
+    if (!ipAddress.isNull() && ipAddress.value().length() > MAX_IP_ADDRESS)
     {
         return false;
     }
@@ -151,7 +151,7 @@ Poco::JSON::Object::Ptr AuditLog::getOldValuesJson() const
 {
     try
     {
-        if (oldValues.empty())
+        if (oldValues.isNull())
         {
             return nullptr;
         }
@@ -169,7 +169,7 @@ Poco::JSON::Object::Ptr AuditLog::getNewValuesJson() const
 {
     try
     {
-        if (newValues.empty())
+        if (newValues.isNull())
         {
             return nullptr;
         }
@@ -185,7 +185,7 @@ Poco::JSON::Object::Ptr AuditLog::getNewValuesJson() const
 
 bool AuditLog::hasChanges() const
 {
-    return !oldValues.empty() || !newValues.empty();
+    return !oldValues.isNull() || !newValues.isNull();
 }
 
 std::vector<std::string> AuditLog::getChangedFields() const

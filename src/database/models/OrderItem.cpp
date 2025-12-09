@@ -98,12 +98,12 @@ Poco::JSON::Object OrderItem::toJson() const
     json.set("line_total", lineTotal);
     json.set("picking_status", pickingStatusToString(pickingStatus));
     
-    if (pickedBy > 0)
+    if (pickedBy.value() > 0)
     {
         json.set("picked_by", pickedBy);
     }
     
-    if (!pickedAt.empty())
+    if (!pickedAt.isNull())
     {
         json.set("picked_at", pickedAt);
     }
@@ -123,7 +123,7 @@ Poco::JSON::Object OrderItem::toJson() const
         json.set("batch_number", batchNumber);
     }
     
-    if (!pickedByName.empty())
+    if (!pickedByName.isNull())
     {
         json.set("picked_by_name", pickedByName);
     }
@@ -143,7 +143,7 @@ OrderItem OrderItem::fromJson(const Poco::JSON::Object& json)
 
 bool OrderItem::validate() const
 {
-    if (orderId <= 0 || productId <= 0 || batchId <= 0)
+    if (orderId < 0 || productId < 0 || batchId < 0)
     {
         return false;
     }

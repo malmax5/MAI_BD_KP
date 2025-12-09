@@ -17,10 +17,7 @@ InventoryMovement::InventoryMovement()
       movementType(MovementType::TRANSFER),
       productId(0),
       batchId(0),
-      fromCellId(0),
-      toCellId(0),
       quantity(0),
-      referenceId(0),
       status(MovementStatus::PLANNED),
       performedBy(0)
 {
@@ -95,24 +92,24 @@ Poco::JSON::Object InventoryMovement::toJson() const
     json.set("product_id", productId);
     json.set("batch_id", batchId);
     
-    if (fromCellId > 0)
+    if (fromCellId.value() > 0)
     {
         json.set("from_cell_id", fromCellId);
     }
     
-    if (toCellId > 0)
+    if (toCellId.value() > 0)
     {
         json.set("to_cell_id", toCellId);
     }
     
     json.set("quantity", quantity);
     
-    if (referenceId > 0)
+    if (referenceId.value() > 0)
     {
         json.set("reference_id", referenceId);
     }
     
-    if (!referenceType.empty())
+    if (!referenceType.isNull())
     {
         json.set("reference_type", referenceType);
     }
@@ -120,7 +117,7 @@ Poco::JSON::Object InventoryMovement::toJson() const
     json.set("movement_date", movementDate);
     json.set("performed_by", performedBy);
     
-    if (!reason.empty())
+    if (!reason.isNull())
     {
         json.set("reason", reason);
     }
@@ -142,12 +139,12 @@ Poco::JSON::Object InventoryMovement::toJson() const
         json.set("batch_number", batchNumber);
     }
     
-    if (!fromCellCode.empty())
+    if (!fromCellCode.isNull())
     {
         json.set("from_cell_code", fromCellCode);
     }
     
-    if (!toCellCode.empty())
+    if (!toCellCode.isNull())
     {
         json.set("to_cell_code", toCellCode);
     }
@@ -199,7 +196,7 @@ bool InventoryMovement::validate() const
         return false;
     }
     
-    if (referenceType.length() > MAX_REFERENCE_TYPE_LENGTH)
+    if (referenceType.value().length() > MAX_REFERENCE_TYPE_LENGTH)
     {
         return false;
     }

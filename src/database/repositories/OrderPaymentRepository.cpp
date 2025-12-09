@@ -179,18 +179,7 @@ long long OrderPaymentRepository::create(const models::OrderPayment& payment)
     {
         beginTransaction(*connection);
         
-        Poco::Int64 orderIdCopy = payment.orderId;
-        std::string paymentMethodCopy = payment.paymentMethod;
-        std::string paymentStatusCopy = payment.paymentStatus;
-        double amountCopy = payment.amount;
-        
-        Poco::Nullable<std::string> transactionIdCopy;
-        if (!payment.transactionId.empty())
-            transactionIdCopy = payment.transactionId;
-        
-        Poco::Nullable<std::string> paymentDateCopy;
-        if (!payment.paymentDate.empty())
-            paymentDateCopy = payment.paymentDate;
+        models::OrderPayment paymentCopy = payment;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -200,12 +189,12 @@ long long OrderPaymentRepository::create(const models::OrderPayment& payment)
                   "transaction_id, payment_date) "
                   "VALUES ($1, $2, $3, $4, $5, $6) "
                   "RETURNING id",
-            Poco::Data::Keywords::use(orderIdCopy),
-            Poco::Data::Keywords::use(paymentMethodCopy),
-            Poco::Data::Keywords::use(paymentStatusCopy),
-            Poco::Data::Keywords::use(amountCopy),
-            Poco::Data::Keywords::use(transactionIdCopy),
-            Poco::Data::Keywords::use(paymentDateCopy),
+            Poco::Data::Keywords::use(paymentCopy.orderId),
+            Poco::Data::Keywords::use(paymentCopy.paymentMethod),
+            Poco::Data::Keywords::use(paymentCopy.paymentStatus),
+            Poco::Data::Keywords::use(paymentCopy.amount),
+            Poco::Data::Keywords::use(paymentCopy.transactionId),
+            Poco::Data::Keywords::use(paymentCopy.paymentDate),
             Poco::Data::Keywords::into(newId),
             now;
         
@@ -227,17 +216,7 @@ bool OrderPaymentRepository::update(long long id, const models::OrderPayment& pa
     {
         beginTransaction(*connection);
         
-        std::string paymentMethodCopy = payment.paymentMethod;
-        std::string paymentStatusCopy = payment.paymentStatus;
-        double amountCopy = payment.amount;
-        
-        Poco::Nullable<std::string> transactionIdCopy;
-        if (!payment.transactionId.empty())
-            transactionIdCopy = payment.transactionId;
-        
-        Poco::Nullable<std::string> paymentDateCopy;
-        if (!payment.paymentDate.empty())
-            paymentDateCopy = payment.paymentDate;
+        models::OrderPayment paymentCopy = payment;
         
         Poco::Int64 idCopy = id;
         
@@ -246,11 +225,11 @@ bool OrderPaymentRepository::update(long long id, const models::OrderPayment& pa
                   "payment_method = $1, payment_status = $2, amount = $3, "
                   "transaction_id = $4, payment_date = $5 "
                   "WHERE id = $6",
-            Poco::Data::Keywords::use(paymentMethodCopy),
-            Poco::Data::Keywords::use(paymentStatusCopy),
-            Poco::Data::Keywords::use(amountCopy),
-            Poco::Data::Keywords::use(transactionIdCopy),
-            Poco::Data::Keywords::use(paymentDateCopy),
+            Poco::Data::Keywords::use(paymentCopy.paymentMethod),
+            Poco::Data::Keywords::use(paymentCopy.paymentStatus),
+            Poco::Data::Keywords::use(paymentCopy.amount),
+            Poco::Data::Keywords::use(paymentCopy.transactionId),
+            Poco::Data::Keywords::use(paymentCopy.paymentDate),
             Poco::Data::Keywords::use(idCopy);
         
         int rowsAffected = update.execute();

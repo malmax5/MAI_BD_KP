@@ -209,31 +209,8 @@ long long ShipmentRepository::create(const models::Shipment& shipment)
         beginTransaction(*connection);
         
         std::string statusStr = models::Shipment::statusToString(shipment.status);
-        std::string shipmentNumber = shipment.shipmentNumber.empty() ? 
-                                     generateShipmentNumber() : shipment.shipmentNumber;
-        
-        Poco::Int64 orderIdCopy = shipment.orderId;
-        std::string shipmentNumberCopy = shipmentNumber;
-        std::string carrierCopy = shipment.carrier;
-        std::string trackingNumberCopy = shipment.trackingNumber;
-        std::string shippingMethodCopy = shipment.shippingMethod;
-        double shippingCostCopy = shipment.shippingCost;
-        
-        std::string shipmentDateCopy = shipment.shipmentDate.empty() ? 
-                                       DateUtils::formatDateTime(DateUtils::now()) : shipment.shipmentDate;
-        
-        Poco::Nullable<std::string> estimatedArrivalCopy;
-        if (!shipment.estimatedArrival.empty())
-            estimatedArrivalCopy = shipment.estimatedArrival;
-            
-        Poco::Nullable<std::string> actualArrivalCopy;
-        if (!shipment.actualArrival.empty())
-            actualArrivalCopy = shipment.actualArrival;
-            
-        std::string statusStrCopy = statusStr;
-        std::string notesCopy = shipment.notes;
-        double weightTotalCopy = shipment.weightTotal;
-        std::string dimensionsTotalCopy = shipment.dimensionsTotal;
+
+        models::Shipment shipmentCopy = shipment;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -244,19 +221,19 @@ long long ShipmentRepository::create(const models::Shipment& shipment)
                   "status, notes, weight_total, dimensions_total) "
                   "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::shipment_status, $11, $12, $13) "
                   "RETURNING id",
-            use(shipmentNumberCopy),
-            use(orderIdCopy),
-            use(carrierCopy),
-            use(trackingNumberCopy),
-            use(shippingMethodCopy),
-            use(shippingCostCopy),
-            use(shipmentDateCopy),
-            use(estimatedArrivalCopy),
-            use(actualArrivalCopy),
-            use(statusStrCopy),
-            use(notesCopy),
-            use(weightTotalCopy),
-            use(dimensionsTotalCopy),
+            use(shipmentCopy.shipmentNumber),
+            use(shipmentCopy.orderId),
+            use(shipmentCopy.carrier),
+            use(shipmentCopy.trackingNumber),
+            use(shipmentCopy.shippingMethod),
+            use(shipmentCopy.shippingCost),
+            use(shipmentCopy.shipmentDate),
+            use(shipmentCopy.estimatedArrival),
+            use(shipmentCopy.actualArrival),
+            use(statusStr),
+            use(shipmentCopy.notes),
+            use(shipmentCopy.weightTotal),
+            use(shipmentCopy.dimensionsTotal),
             into(newId),
             now;
         
@@ -280,27 +257,9 @@ bool ShipmentRepository::update(long long id, const models::Shipment& shipment)
         
         std::string statusStr = models::Shipment::statusToString(shipment.status);
         
+        models::Shipment shipmentCopy = shipment;
+
         Poco::Int64 idCopy = id;
-        std::string shipmentNumberCopy = shipment.shipmentNumber;
-        Poco::Int64 orderIdCopy = shipment.orderId;
-        std::string carrierCopy = shipment.carrier;
-        std::string trackingNumberCopy = shipment.trackingNumber;
-        std::string shippingMethodCopy = shipment.shippingMethod;
-        double shippingCostCopy = shipment.shippingCost;
-        std::string shipmentDateCopy = shipment.shipmentDate;
-
-        Poco::Nullable<std::string> estimatedArrivalCopy;
-        if (!shipment.estimatedArrival.empty())
-            estimatedArrivalCopy = shipment.estimatedArrival;
-            
-        Poco::Nullable<std::string> actualArrivalCopy;
-        if (!shipment.actualArrival.empty())
-            actualArrivalCopy = shipment.actualArrival;
-
-        std::string statusStrCopy = statusStr;
-        std::string notesCopy = shipment.notes;
-        double weightTotalCopy = shipment.weightTotal;
-        std::string dimensionsTotalCopy = shipment.dimensionsTotal;
         
         Poco::Data::Statement update(connection->getSession());
         update << "UPDATE " << TABLE_NAME << " SET "
@@ -310,19 +269,19 @@ bool ShipmentRepository::update(long long id, const models::Shipment& shipment)
                   "status = $10::shipment_status, notes = $11, "
                   "weight_total = $12, dimensions_total = $13 "
                   "WHERE id = $14",
-            use(shipmentNumberCopy),
-            use(orderIdCopy),
-            use(carrierCopy),
-            use(trackingNumberCopy),
-            use(shippingMethodCopy),
-            use(shippingCostCopy),
-            use(shipmentDateCopy),
-            use(estimatedArrivalCopy),
-            use(actualArrivalCopy),
-            use(statusStrCopy),
-            use(notesCopy),
-            use(weightTotalCopy),
-            use(dimensionsTotalCopy),
+            use(shipmentCopy.shipmentNumber),
+            use(shipmentCopy.orderId),
+            use(shipmentCopy.carrier),
+            use(shipmentCopy.trackingNumber),
+            use(shipmentCopy.shippingMethod),
+            use(shipmentCopy.shippingCost),
+            use(shipmentCopy.shipmentDate),
+            use(shipmentCopy.estimatedArrival),
+            use(shipmentCopy.actualArrival),
+            use(statusStr),
+            use(shipmentCopy.notes),
+            use(shipmentCopy.weightTotal),
+            use(shipmentCopy.dimensionsTotal),
             use(idCopy);
         
         int rowsAffected = update.execute();

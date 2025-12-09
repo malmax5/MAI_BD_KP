@@ -13,7 +13,6 @@ using namespace warehouse_backend::utils;
 
 Category::Category()
     : id(0),
-      parentId(0),
       sortOrder(0)
 {
 
@@ -50,17 +49,17 @@ Poco::JSON::Object Category::toJson() const
     
     json.set("name", name);
     
-    if (!description.empty())
+    if (!description.isNull())
     {
         json.set("description", description);
     }
     
-    if (parentId > 0)
+    if (parentId.value() > 0)
     {
         json.set("parent_id", parentId);
     }
     
-    if (!path.empty())
+    if (!path.isNull())
     {
         json.set("path", path);
     }
@@ -68,7 +67,7 @@ Poco::JSON::Object Category::toJson() const
     json.set("sort_order", sortOrder);
     json.set("created_at", createdAt);
     
-    if (!parentName.empty())
+    if (!parentName.isNull())
     {
         json.set("parent_name", parentName);
     }
@@ -108,7 +107,7 @@ bool Category::validate() const
         return false;
     }
     
-    if (description.length() > MAX_DESCRIPTION_LENGTH)
+    if (description.value().length() > MAX_DESCRIPTION_LENGTH)
     {
         return false;
     }

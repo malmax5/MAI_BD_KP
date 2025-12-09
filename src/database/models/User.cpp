@@ -56,14 +56,14 @@ Poco::JSON::Object User::toJson() const
     json.set("role", roleToString(role));
     json.set("created_at", createdAt);
     
-    if (!lastLogin.empty())
+    if (!lastLogin.isNull())
     {
         json.set("last_login", lastLogin);
     }
     
     json.set("is_active", isActive);
     
-    if (!phoneNumber.empty())
+    if (!phoneNumber.isNull())
     {
         json.set("phone_number", phoneNumber);
     }

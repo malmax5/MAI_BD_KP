@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -17,16 +18,16 @@ enum class UserRole
 class User
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string username;
     std::string passwordHash;
     std::string fullName;
     std::string email;
     UserRole role;
     std::string createdAt;
-    std::string lastLogin;
+    Poco::Nullable<std::string> lastLogin;
     bool isActive;
-    std::string phoneNumber;
+    Poco::Nullable<std::string> phoneNumber;
 
     User();
     explicit User(const Poco::JSON::Object& json);

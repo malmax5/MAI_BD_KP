@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -9,13 +10,13 @@ namespace warehouse_backend::database::models
 class OrderPayment
 {
 public:
-    long long id;
-    long long orderId;
+    Poco::Int64 id;
+    Poco::Int64 orderId;
     std::string paymentMethod;
     std::string paymentStatus;
     double amount;
-    std::string transactionId;
-    std::string paymentDate;
+    Poco::Nullable<std::string> transactionId;
+    Poco::Nullable<std::string> paymentDate;
     std::string createdAt;
 
     std::string orderNumber;

@@ -49,22 +49,22 @@ Poco::JSON::Object Supplier::toJson() const
     
     json.set("name", name);
     
-    if (!contactPerson.empty())
+    if (!contactPerson.isNull())
     {
         json.set("contact_person", contactPerson);
     }
     
-    if (!email.empty())
+    if (!email.isNull())
     {
         json.set("email", email);
     }
     
-    if (!phone.empty())
+    if (!phone.isNull())
     {
         json.set("phone", phone);
     }
     
-    if (!address.empty())
+    if (!address.isNull())
     {
         json.set("address", address);
     }
@@ -74,7 +74,7 @@ Poco::JSON::Object Supplier::toJson() const
         json.set("tax_id", taxId);
     }
     
-    if (!paymentTerms.empty())
+    if (!paymentTerms.isNull())
     {
         json.set("payment_terms", paymentTerms);
     }
@@ -98,7 +98,7 @@ bool Supplier::validate() const
         return false;
     }
     
-    if (!email.empty() && !Validator::isValidEmail(email))
+    if (!email.isNull() && !Validator::isValidEmail(email))
     {
         return false;
     }

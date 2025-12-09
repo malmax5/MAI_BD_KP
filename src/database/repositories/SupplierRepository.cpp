@@ -133,17 +133,8 @@ long long SupplierRepository::create(const models::Supplier& supplier)
     
     try
     {
-        std::string name = supplier.name;
-        std::string contactPerson = supplier.contactPerson;
-        std::string email = supplier.email;
-        std::string phone = supplier.phone;
-        std::string address = supplier.address;
-        std::string taxId = supplier.taxId;
-        std::string paymentTerms = supplier.paymentTerms;
-        double rating = supplier.rating;
-        std::string createdAt = supplier.createdAt;
-        bool isActive = supplier.isActive;
-        
+        models::Supplier supplierCopy = supplier;
+
         connection->beginTransaction();
         
         Statement insert(connection->getSession());
@@ -152,16 +143,16 @@ long long SupplierRepository::create(const models::Supplier& supplier)
         insert << "INSERT INTO " + TABLE_NAME + " (name, contact_person, email, phone, address, "
                << "tax_id, payment_terms, rating, created_at, is_active) "
                << "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id",
-            use(name),
-            use(contactPerson),
-            use(email),
-            use(phone),
-            use(address),
-            use(taxId),
-            use(paymentTerms),
-            use(rating),
-            use(createdAt),
-            use(isActive),
+            use(supplierCopy.name),
+            use(supplierCopy.contactPerson),
+            use(supplierCopy.email),
+            use(supplierCopy.phone),
+            use(supplierCopy.address),
+            use(supplierCopy.taxId),
+            use(supplierCopy.paymentTerms),
+            use(supplierCopy.rating),
+            use(supplierCopy.createdAt),
+            use(supplierCopy.isActive),
             into(id),
             now;
         
@@ -186,33 +177,26 @@ bool SupplierRepository::update(long long id, const models::Supplier& supplier)
     
     try
     {
-        std::string name = supplier.name;
-        std::string contactPerson = supplier.contactPerson;
-        std::string email = supplier.email;
-        std::string phone = supplier.phone;
-        std::string address = supplier.address;
-        std::string taxId = supplier.taxId;
-        std::string paymentTerms = supplier.paymentTerms;
-        double rating = supplier.rating;
-        bool isActive = supplier.isActive;
-        Poco::Int64 pocoId = static_cast<Poco::Int64>(id);
+        models::Supplier supplierCopy = supplier;
         
         connection->beginTransaction();
+
+        Poco::Int64 pocoId = id;
         
         Statement updateStmt(connection->getSession());
         updateStmt << "UPDATE " + TABLE_NAME + " SET "
                    << "name = $1, contact_person = $2, email = $3, phone = $4, address = $5, "
                    << "tax_id = $6, payment_terms = $7, rating = $8, is_active = $9 "
                    << "WHERE id = $10",
-            use(name),
-            use(contactPerson),
-            use(email),
-            use(phone),
-            use(address),
-            use(taxId),
-            use(paymentTerms),
-            use(rating),
-            use(isActive),
+            use(supplierCopy.name),
+            use(supplierCopy.contactPerson),
+            use(supplierCopy.email),
+            use(supplierCopy.phone),
+            use(supplierCopy.address),
+            use(supplierCopy.taxId),
+            use(supplierCopy.paymentTerms),
+            use(supplierCopy.rating),
+            use(supplierCopy.isActive),
             use(pocoId),
             now;
         

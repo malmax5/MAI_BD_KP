@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -9,16 +10,16 @@ namespace warehouse_backend::database::models
 class Supplier
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string name;
-    std::string contactPerson;
-    std::string email;
-    std::string phone;
-    std::string address;
+    Poco::Nullable<std::string> contactPerson;
+    Poco::Nullable<std::string> email;
+    Poco::Nullable<std::string> phone;
+    Poco::Nullable<std::string> address;
     std::string taxId;
-    std::string paymentTerms;
+    Poco::Nullable<std::string> paymentTerms;
     double rating;
-    std::string createdAt;
+    Poco::Nullable<std::string> createdAt;
     bool isActive;
 
     Supplier();

@@ -125,8 +125,6 @@ void DatabaseConnection::connect(const ConnectionConfig& config)
             Poco::Data::SessionFactory::instance().create(
                 Poco::Data::PostgreSQL::Connector::KEY, connectionString));
         
-        session->setFeature("autoCommit", true);
-        
         *session << "SELECT 1", Poco::Data::Keywords::now;
         
         connected = true;
@@ -153,7 +151,7 @@ void DatabaseConnection::disconnect()
 {
     std::lock_guard<std::mutex> lock(mutex);
     
-    if (transaction)
+    if (transaction && isTransactionActive())
     {
         try
         {
@@ -161,7 +159,7 @@ void DatabaseConnection::disconnect()
         }
         catch (...)
         {
-
+            std::cerr << "Warning: Failed to rollback transaction during disconnect" << std::endl;
         }
         transaction.reset();
     }
@@ -174,7 +172,7 @@ void DatabaseConnection::disconnect()
         }
         catch (...)
         {
-
+            std::cerr << "Warning: Failed to close session" << std::endl;
         }
         session.reset();
     }
@@ -222,7 +220,6 @@ void DatabaseConnection::beginTransaction()
     try
     {
         transaction = std::make_unique<Poco::Data::Transaction>(*session);
-        session->setFeature("autoCommit", false);
     }
     catch (const Poco::Exception& e)
     {
@@ -244,7 +241,6 @@ void DatabaseConnection::commitTransaction()
     {
         transaction->commit();
         transaction.reset();
-        session->setFeature("autoCommit", true);
     }
     catch (const Poco::Exception& e)
     {
@@ -337,6 +333,11 @@ void DatabaseConnection::setAutoCommit(bool autoCommit)
     if (!isConnected())
     {
         throw ConnectionException("Database connection is not established");
+    }
+
+    if (transaction)
+    {
+        throw QueryException("Cannot change autoCommit while transaction is active");
     }
     
     try

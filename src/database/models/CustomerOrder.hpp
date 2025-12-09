@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -30,20 +31,20 @@ enum class OrderPriority
 class CustomerOrder
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string orderNumber;
     std::string customerName;
-    std::string customerEmail;
-    std::string customerPhone;
+    Poco::Nullable<std::string> customerEmail;
+    Poco::Nullable<std::string> customerPhone;
     std::string shippingAddress;
     std::string orderDate;
     OrderStatus status;
     double totalAmount;
     OrderPriority priority;
-    std::string notes;
-    std::string estimatedDeliveryDate;
-    std::string actualDeliveryDate;
-    long long createdBy;
+    Poco::Nullable<std::string> notes;
+    Poco::Nullable<std::string> estimatedDeliveryDate;
+    Poco::Nullable<std::string> actualDeliveryDate;
+    Poco::Int64 createdBy;
 
     std::string createdByName;
     std::vector<std::shared_ptr<class OrderItem>> orderItems;

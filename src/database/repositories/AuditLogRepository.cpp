@@ -197,31 +197,7 @@ long long AuditLogRepository::create(const models::AuditLog& auditLog)
         
         std::string actionStr = models::AuditLog::auditActionToString(auditLog.action);
         
-        Poco::Int64 recordIdCopy = auditLog.recordId;
-        std::string tableNameCopy = auditLog.tableName;
-        std::string actionStrCopy = actionStr;
-        Poco::Nullable<std::string> oldValuesCopy;
-        if (!auditLog.oldValues.empty())
-            oldValuesCopy = auditLog.oldValues;
-        
-        Poco::Nullable<std::string> newValuesCopy;
-        if (!auditLog.newValues.empty())
-            newValuesCopy = auditLog.newValues;
-        
-        Poco::Int64 changedByCopy = auditLog.changedBy;
-        std::string changedAtCopy = auditLog.changedAt.empty() ? DateUtils::formatDateTime(DateUtils::now()) : auditLog.changedAt;
-        
-        Poco::Nullable<std::string> ipAddressCopy;
-        if (!auditLog.ipAddress.empty())
-            ipAddressCopy = auditLog.ipAddress;
-        
-        Poco::Nullable<std::string> userAgentCopy;
-        if (!auditLog.userAgent.empty())
-            userAgentCopy = auditLog.userAgent;
-        
-        Poco::Nullable<std::string> descriptionCopy;
-        if (!auditLog.description.empty())
-            descriptionCopy = auditLog.description;
+        models::AuditLog auditLogCopy = auditLog;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -232,16 +208,16 @@ long long AuditLogRepository::create(const models::AuditLog& auditLog)
                   "VALUES ($1, $2, $3::audit_action, $4::jsonb, $5::jsonb, "
                   "$6, $7, $8, $9, $10) "
                   "RETURNING id",
-            Poco::Data::Keywords::use(tableNameCopy),
-            Poco::Data::Keywords::use(recordIdCopy),
-            Poco::Data::Keywords::use(actionStrCopy),
-            Poco::Data::Keywords::use(oldValuesCopy),
-            Poco::Data::Keywords::use(newValuesCopy),
-            Poco::Data::Keywords::use(changedByCopy),
-            Poco::Data::Keywords::use(changedAtCopy),
-            Poco::Data::Keywords::use(ipAddressCopy),
-            Poco::Data::Keywords::use(userAgentCopy),
-            Poco::Data::Keywords::use(descriptionCopy),
+            Poco::Data::Keywords::use(auditLogCopy.tableName),
+            Poco::Data::Keywords::use(auditLogCopy.recordId),
+            Poco::Data::Keywords::use(actionStr),
+            Poco::Data::Keywords::use(auditLogCopy.oldValues),
+            Poco::Data::Keywords::use(auditLogCopy.newValues),
+            Poco::Data::Keywords::use(auditLogCopy.changedBy),
+            Poco::Data::Keywords::use(auditLogCopy.changedAt),
+            Poco::Data::Keywords::use(auditLogCopy.ipAddress),
+            Poco::Data::Keywords::use(auditLogCopy.userAgent),
+            Poco::Data::Keywords::use(auditLogCopy.description),
             Poco::Data::Keywords::into(newId),
             now;
         
@@ -265,31 +241,7 @@ bool AuditLogRepository::update(long long id, const models::AuditLog& auditLog)
         
         std::string actionStr = models::AuditLog::auditActionToString(auditLog.action);
         
-        std::string tableNameCopy = auditLog.tableName;
-        Poco::Int64 recordIdCopy = auditLog.recordId;
-        std::string actionStrCopy = actionStr;
-        Poco::Nullable<std::string> oldValuesCopy;
-        if (!auditLog.oldValues.empty())
-            oldValuesCopy = auditLog.oldValues;
-        
-        Poco::Nullable<std::string> newValuesCopy;
-        if (!auditLog.newValues.empty())
-            newValuesCopy = auditLog.newValues;
-        
-        Poco::Int64 changedByCopy = auditLog.changedBy;
-        std::string changedAtCopy = auditLog.changedAt;
-        
-        Poco::Nullable<std::string> ipAddressCopy;
-        if (!auditLog.ipAddress.empty())
-            ipAddressCopy = auditLog.ipAddress;
-        
-        Poco::Nullable<std::string> userAgentCopy;
-        if (!auditLog.userAgent.empty())
-            userAgentCopy = auditLog.userAgent;
-        
-        Poco::Nullable<std::string> descriptionCopy;
-        if (!auditLog.description.empty())
-            descriptionCopy = auditLog.description;
+        models::AuditLog auditLogCopy = auditLog;
         
         Poco::Int64 idCopy = id;
         
@@ -300,16 +252,16 @@ bool AuditLogRepository::update(long long id, const models::AuditLog& auditLog)
                   "changed_by = $6, changed_at = $7, "
                   "ip_address = $8, user_agent = $9, description = $10 "
                   "WHERE id = $11",
-            Poco::Data::Keywords::use(tableNameCopy),
-            Poco::Data::Keywords::use(recordIdCopy),
-            Poco::Data::Keywords::use(actionStrCopy),
-            Poco::Data::Keywords::use(oldValuesCopy),
-            Poco::Data::Keywords::use(newValuesCopy),
-            Poco::Data::Keywords::use(changedByCopy),
-            Poco::Data::Keywords::use(changedAtCopy),
-            Poco::Data::Keywords::use(ipAddressCopy),
-            Poco::Data::Keywords::use(userAgentCopy),
-            Poco::Data::Keywords::use(descriptionCopy),
+            Poco::Data::Keywords::use(auditLogCopy.tableName),
+            Poco::Data::Keywords::use(auditLogCopy.recordId),
+            Poco::Data::Keywords::use(actionStr),
+            Poco::Data::Keywords::use(auditLogCopy.oldValues),
+            Poco::Data::Keywords::use(auditLogCopy.newValues),
+            Poco::Data::Keywords::use(auditLogCopy.changedBy),
+            Poco::Data::Keywords::use(auditLogCopy.changedAt),
+            Poco::Data::Keywords::use(auditLogCopy.ipAddress),
+            Poco::Data::Keywords::use(auditLogCopy.userAgent),
+            Poco::Data::Keywords::use(auditLogCopy.description),
             Poco::Data::Keywords::use(idCopy);
         
         int rowsAffected = update.execute();

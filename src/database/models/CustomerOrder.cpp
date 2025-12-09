@@ -69,12 +69,12 @@ Poco::JSON::Object CustomerOrder::toJson() const
     json.set("order_number", orderNumber);
     json.set("customer_name", customerName);
     
-    if (!customerEmail.empty())
+    if (!customerEmail.isNull())
     {
         json.set("customer_email", customerEmail);
     }
     
-    if (!customerPhone.empty())
+    if (!customerPhone.isNull())
     {
         json.set("customer_phone", customerPhone);
     }
@@ -85,17 +85,17 @@ Poco::JSON::Object CustomerOrder::toJson() const
     json.set("total_amount", totalAmount);
     json.set("priority", priorityToString(priority));
     
-    if (!notes.empty())
+    if (!notes.isNull())
     {
         json.set("notes", notes);
     }
     
-    if (!estimatedDeliveryDate.empty())
+    if (!estimatedDeliveryDate.isNull())
     {
         json.set("estimated_delivery_date", estimatedDeliveryDate);
     }
     
-    if (!actualDeliveryDate.empty())
+    if (!actualDeliveryDate.isNull())
     {
         json.set("actual_delivery_date", actualDeliveryDate);
     }
@@ -151,7 +151,7 @@ bool CustomerOrder::validate() const
         return false;
     }
     
-    if (!customerEmail.empty() && !Validator::isValidEmail(customerEmail))
+    if (!customerEmail.isNull() && !Validator::isValidEmail(customerEmail.value()))
     {
         return false;
     }
@@ -171,12 +171,12 @@ bool CustomerOrder::validate() const
         return false;
     }
     
-    if (!estimatedDeliveryDate.empty() && !Validator::isValidDate(estimatedDeliveryDate))
+    if (!estimatedDeliveryDate.isNull() && !Validator::isValidDate(estimatedDeliveryDate.value()))
     {
         return false;
     }
     
-    if (!actualDeliveryDate.empty() && !Validator::isValidDate(actualDeliveryDate))
+    if (!actualDeliveryDate.isNull() && !Validator::isValidDate(actualDeliveryDate.value()))
     {
         return false;
     }

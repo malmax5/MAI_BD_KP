@@ -213,35 +213,10 @@ long long CustomerOrderRepository::create(const models::CustomerOrder& order)
     {
         beginTransaction(*connection);
         
-        std::string orderNumber = order.orderNumber;
-        if (orderNumber.empty())
-        {
-            orderNumber = generateOrderNumber();
-        }
-        
-        std::string orderDate = order.orderDate.empty() ? 
-            DateUtils::formatDateTime(DateUtils::now()) : order.orderDate;
-        
         std::string statusStr = models::CustomerOrder::statusToString(order.status);
         std::string priorityStr = models::CustomerOrder::priorityToString(order.priority);
         
-        std::string orderNumberCopy = orderNumber;
-        std::string customerNameCopy = order.customerName;
-        std::string customerEmailCopy = order.customerEmail;
-        std::string customerPhoneCopy = order.customerPhone;
-        std::string shippingAddressCopy = order.shippingAddress;
-        std::string orderDateCopy = orderDate;
-        std::string statusStrCopy = statusStr;
-        double totalAmountCopy = order.totalAmount;
-        std::string priorityStrCopy = priorityStr;
-        std::string notesCopy = order.notes;
-        std::string estimatedDeliveryDateCopy = order.estimatedDeliveryDate;
-        
-        Poco::Nullable<std::string> actualDeliveryDateCopy;
-        if (!order.actualDeliveryDate.empty())
-            actualDeliveryDateCopy = order.actualDeliveryDate;
-            
-        long long createdByCopy = order.createdBy;
+        models::CustomerOrder orderCopy = order;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -252,19 +227,19 @@ long long CustomerOrderRepository::create(const models::CustomerOrder& order)
                   "estimated_delivery_date, actual_delivery_date, created_by) "
                   "VALUES ($1, $2, $3, $4, $5, $6, $7::order_status, $8, $9::order_priority, $10, $11, $12, $13) "
                   "RETURNING id",
-            Poco::Data::Keywords::use(orderNumberCopy),
-            Poco::Data::Keywords::use(customerNameCopy),
-            Poco::Data::Keywords::use(customerEmailCopy),
-            Poco::Data::Keywords::use(customerPhoneCopy),
-            Poco::Data::Keywords::use(shippingAddressCopy),
-            Poco::Data::Keywords::use(orderDateCopy),
-            Poco::Data::Keywords::use(statusStrCopy),
-            Poco::Data::Keywords::use(totalAmountCopy),
-            Poco::Data::Keywords::use(priorityStrCopy),
-            Poco::Data::Keywords::use(notesCopy),
-            Poco::Data::Keywords::use(estimatedDeliveryDateCopy),
-            Poco::Data::Keywords::use(actualDeliveryDateCopy),
-            Poco::Data::Keywords::use(createdByCopy),
+            Poco::Data::Keywords::use(orderCopy.orderNumber),
+            Poco::Data::Keywords::use(orderCopy.customerName),
+            Poco::Data::Keywords::use(orderCopy.customerEmail),
+            Poco::Data::Keywords::use(orderCopy.customerPhone),
+            Poco::Data::Keywords::use(orderCopy.shippingAddress),
+            Poco::Data::Keywords::use(orderCopy.orderDate),
+            Poco::Data::Keywords::use(statusStr),
+            Poco::Data::Keywords::use(orderCopy.totalAmount),
+            Poco::Data::Keywords::use(priorityStr),
+            Poco::Data::Keywords::use(orderCopy.notes),
+            Poco::Data::Keywords::use(orderCopy.estimatedDeliveryDate),
+            Poco::Data::Keywords::use(orderCopy.actualDeliveryDate),
+            Poco::Data::Keywords::use(orderCopy.createdBy),
             Poco::Data::Keywords::into(newId),
             now;
         

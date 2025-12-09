@@ -63,12 +63,12 @@ Poco::JSON::Object OrderPayment::toJson() const
     json.set("payment_status", paymentStatus);
     json.set("amount", amount);
     
-    if (!transactionId.empty())
+    if (!transactionId.isNull())
     {
         json.set("transaction_id", transactionId);
     }
     
-    if (!paymentDate.empty())
+    if (!paymentDate.isNull())
     {
         json.set("payment_date", paymentDate);
     }
@@ -124,12 +124,12 @@ bool OrderPayment::validate() const
         return false;
     }
     
-    if (!transactionId.empty() && transactionId.length() > MAX_TRANSACTION_ID)
+    if (!transactionId.isNull() && transactionId.value().length() > MAX_TRANSACTION_ID)
     {
         return false;
     }
     
-    if (!paymentDate.empty() && !Validator::isValidDateTime(paymentDate))
+    if (!paymentDate.isNull() && !Validator::isValidDateTime(paymentDate.value()))
     {
         return false;
     }

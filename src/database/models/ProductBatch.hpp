@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -17,19 +18,19 @@ enum class QualityStatus
 class ProductBatch
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string batchNumber;
-    long long productId;
-    long long supplierId;
+    Poco::Int64 productId;
+    Poco::Int64 supplierId;
     int quantityReceived;
     int quantityAvailable;
     double unitCost;
-    std::string manufactureDate;
-    std::string expirationDate;
-    std::string arrivalDate;
-    long long storageCellId;
+    Poco::Nullable<std::string> manufactureDate;
+    Poco::Nullable<std::string> expirationDate;
+    Poco::Nullable<std::string> arrivalDate;
+    Poco::Int64 storageCellId;
     QualityStatus qualityStatus;
-    std::string invoiceNumber;
+    Poco::Nullable<std::string> invoiceNumber;
 
     std::string productName;
     std::string productSku;

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -17,17 +18,17 @@ enum class AuditAction
 class AuditLog
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string tableName;
-    long long recordId;
+    Poco::Int64 recordId;
     AuditAction action;
-    std::string oldValues;
-    std::string newValues;
-    long long changedBy;
-    std::string changedAt;
-    std::string ipAddress;
-    std::string userAgent;
-    std::string description;
+    Poco::Nullable<std::string> oldValues;
+    Poco::Nullable<std::string> newValues;
+    Poco::Int64 changedBy;
+    Poco::Nullable<std::string> changedAt;
+    Poco::Nullable<std::string> ipAddress;
+    Poco::Nullable<std::string> userAgent;
+    Poco::Nullable<std::string> description;
 
     std::string changedByName;
 

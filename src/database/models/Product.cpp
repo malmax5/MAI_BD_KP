@@ -70,7 +70,7 @@ Poco::JSON::Object Product::toJson() const
     json.set("sku", sku);
     json.set("name", name);
     
-    if (!description.empty())
+    if (!description.isNull())
     {
         json.set("description", description);
     }
@@ -84,7 +84,7 @@ Poco::JSON::Object Product::toJson() const
         json.set("weight", weight);
     }
     
-    if (!dimensions.empty())
+    if (!dimensions.isNull())
     {
         json.set("dimensions", dimensions);
     }

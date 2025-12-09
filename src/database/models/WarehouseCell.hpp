@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -24,7 +25,7 @@ enum class TemperatureZone
 class WarehouseCell
 {
 public:
-    long long id;
+    Poco::Int64 id;
     std::string cellCode;
     std::string zone;
     std::string rack;
@@ -35,7 +36,7 @@ public:
     double currentOccupancy;
     CellStatus status;
     TemperatureZone temperatureZone;
-    std::string lastInventoryDate;
+    Poco::Nullable<std::string> lastInventoryDate;
 
     WarehouseCell();
     explicit WarehouseCell(const Poco::JSON::Object& json);

@@ -218,21 +218,7 @@ long long OrderItemRepository::create(const models::OrderItem& item)
         
         std::string pickingStatusStr = models::OrderItem::pickingStatusToString(item.pickingStatus);
         
-        Poco::Int64 orderIdCopy = item.orderId;
-        Poco::Int64 productIdCopy = item.productId;
-        Poco::Int64 batchIdCopy = item.batchId;
-        int quantityOrderedCopy = item.quantityOrdered;
-        int quantityShippedCopy = item.quantityShipped;
-        double unitPriceCopy = item.unitPrice;
-        double discountPercentCopy = item.discountPercent;
-        std::string pickingStatusStrCopy = pickingStatusStr;
-        Poco::Nullable<Poco::Int64> pickedByCopy;
-        if (item.pickedBy > 0)
-            pickedByCopy = item.pickedBy;
-
-        Poco::Nullable<std::string> pickedAtCopy;
-        if (!item.pickedAt.empty())
-            pickedAtCopy = item.pickedAt;
+        models::OrderItem itemCopy = item;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -244,16 +230,16 @@ long long OrderItemRepository::create(const models::OrderItem& item)
                   "picked_by, picked_at) "
                   "VALUES ($1, $2, $3, $4, $5, $6, $7, $8::picking_status, $9, $10) "
                   "RETURNING id",
-            Poco::Data::Keywords::use(orderIdCopy),
-            Poco::Data::Keywords::use(productIdCopy),
-            Poco::Data::Keywords::use(batchIdCopy),
-            Poco::Data::Keywords::use(quantityOrderedCopy),
-            Poco::Data::Keywords::use(quantityShippedCopy),
-            Poco::Data::Keywords::use(unitPriceCopy),
-            Poco::Data::Keywords::use(discountPercentCopy),
-            Poco::Data::Keywords::use(pickingStatusStrCopy),
-            Poco::Data::Keywords::use(pickedByCopy),
-            Poco::Data::Keywords::use(pickedAtCopy),
+            Poco::Data::Keywords::use(itemCopy.orderId),
+            Poco::Data::Keywords::use(itemCopy.productId),
+            Poco::Data::Keywords::use(itemCopy.batchId),
+            Poco::Data::Keywords::use(itemCopy.quantityOrdered),
+            Poco::Data::Keywords::use(itemCopy.quantityShipped),
+            Poco::Data::Keywords::use(itemCopy.unitPrice),
+            Poco::Data::Keywords::use(itemCopy.discountPercent),
+            Poco::Data::Keywords::use(pickingStatusStr),
+            Poco::Data::Keywords::use(itemCopy.pickedBy),
+            Poco::Data::Keywords::use(itemCopy.pickedAt),
             Poco::Data::Keywords::into(newId),
             now;
         
@@ -276,25 +262,11 @@ bool OrderItemRepository::update(long long id, const models::OrderItem& item)
         beginTransaction(*connection);
         
         std::string pickingStatusStr = models::OrderItem::pickingStatusToString(item.pickingStatus);
+
         models::OrderItem itemCopy = item;
+
         itemCopy.calculateLineTotal();
         
-        Poco::Int64 productIdCopy = item.productId;
-        Poco::Int64 batchIdCopy = item.batchId;
-        int quantityOrderedCopy = item.quantityOrdered;
-        int quantityShippedCopy = item.quantityShipped;
-        double unitPriceCopy = item.unitPrice;
-        double discountPercentCopy = item.discountPercent;
-        double lineTotalCopy = itemCopy.lineTotal;
-        std::string pickingStatusStrCopy = pickingStatusStr;
-        Poco::Nullable<Poco::Int64> pickedByCopy;
-        if (item.pickedBy > 0)
-            pickedByCopy = item.pickedBy;
-
-        Poco::Nullable<std::string> pickedAtCopy;
-        if (!item.pickedAt.empty())
-            pickedAtCopy = item.pickedAt;
-
         Poco::Int64 idCopy = id;
         
         Poco::Data::Statement update(connection->getSession());
@@ -303,15 +275,15 @@ bool OrderItemRepository::update(long long id, const models::OrderItem& item)
                   "quantity_shipped = $4, unit_price = $5, discount_percent = $6, "
                   "picking_status = $7, picked_by = $8, "
                   "picked_at = $9 WHERE id = $10",
-            Poco::Data::Keywords::use(productIdCopy),
-            Poco::Data::Keywords::use(batchIdCopy),
-            Poco::Data::Keywords::use(quantityOrderedCopy),
-            Poco::Data::Keywords::use(quantityShippedCopy),
-            Poco::Data::Keywords::use(unitPriceCopy),
-            Poco::Data::Keywords::use(discountPercentCopy),
-            Poco::Data::Keywords::use(pickingStatusStrCopy),
-            Poco::Data::Keywords::use(pickedByCopy),
-            Poco::Data::Keywords::use(pickedAtCopy),
+            Poco::Data::Keywords::use(itemCopy.productId),
+            Poco::Data::Keywords::use(itemCopy.batchId),
+            Poco::Data::Keywords::use(itemCopy.quantityOrdered),
+            Poco::Data::Keywords::use(itemCopy.quantityShipped),
+            Poco::Data::Keywords::use(itemCopy.unitPrice),
+            Poco::Data::Keywords::use(itemCopy.discountPercent),
+            Poco::Data::Keywords::use(pickingStatusStr),
+            Poco::Data::Keywords::use(itemCopy.pickedBy),
+            Poco::Data::Keywords::use(itemCopy.pickedAt),
             Poco::Data::Keywords::use(idCopy);
         
         int rowsAffected = update.execute();

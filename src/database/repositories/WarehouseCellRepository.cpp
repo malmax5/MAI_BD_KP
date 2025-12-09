@@ -134,62 +134,31 @@ long long WarehouseCellRepository::create(const models::WarehouseCell& warehouse
     {
         beginTransaction(*connection);
         
-        std::string cellCodeCopy = warehouseCell.cellCode;
-        std::string zoneCopy = warehouseCell.zone;
-        std::string rackCopy = warehouseCell.rack;
-        std::string shelfCopy = warehouseCell.shelf;
-        std::string positionCopy = warehouseCell.position;
-        double maxVolumeCopy = warehouseCell.maxVolume;
-        double maxWeightCopy = warehouseCell.maxWeight;
-        double currentOccupancyCopy = warehouseCell.currentOccupancy;
         std::string statusStr = models::WarehouseCell::statusToString(warehouseCell.status);
         std::string temperatureZoneStr = models::WarehouseCell::temperatureZoneToString(warehouseCell.temperatureZone);
-        std::string lastInventoryDateCopy = warehouseCell.lastInventoryDate;
+        
+        models::WarehouseCell warehouseCellCopy = warehouseCell;
         
         Poco::Int64 newId = 0;
         Statement insert(connection->getSession());
         
-        if (lastInventoryDateCopy.empty())
-        {
-            insert << "INSERT INTO " << TABLE_NAME << " "
-                      "(cell_code, zone, rack, shelf, position, max_volume, max_weight, "
-                      "current_occupancy, status, temperature_zone) "
-                      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::cell_status, $10::temperature_zone) "
-                      "RETURNING id",
-                use(cellCodeCopy),
-                use(zoneCopy),
-                use(rackCopy),
-                use(shelfCopy),
-                use(positionCopy),
-                use(maxVolumeCopy),
-                use(maxWeightCopy),
-                use(currentOccupancyCopy),
-                use(statusStr),
-                use(temperatureZoneStr),
-                into(newId),
-                now;
-        }
-        else
-        {
-            insert << "INSERT INTO " << TABLE_NAME << " "
-                      "(cell_code, zone, rack, shelf, position, max_volume, max_weight, "
-                      "current_occupancy, status, temperature_zone, last_inventory_date) "
-                      "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::cell_status, $10::temperature_zone, $11) "
-                      "RETURNING id",
-                use(cellCodeCopy),
-                use(zoneCopy),
-                use(rackCopy),
-                use(shelfCopy),
-                use(positionCopy),
-                use(maxVolumeCopy),
-                use(maxWeightCopy),
-                use(currentOccupancyCopy),
-                use(statusStr),
-                use(temperatureZoneStr),
-                use(lastInventoryDateCopy),
-                into(newId),
-                now;
-        }
+        insert << "INSERT INTO " << TABLE_NAME << " "
+                  "(cell_code, zone, rack, shelf, position, max_volume, max_weight, "
+                  "current_occupancy, status, temperature_zone) "
+                  "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::cell_status, $10::temperature_zone) "
+                  "RETURNING id",
+            use(warehouseCellCopy.cellCode),
+            use(warehouseCellCopy.zone),
+            use(warehouseCellCopy.rack),
+            use(warehouseCellCopy.shelf),
+            use(warehouseCellCopy.position),
+            use(warehouseCellCopy.maxVolume),
+            use(warehouseCellCopy.maxWeight),
+            use(warehouseCellCopy.currentOccupancy),
+            use(statusStr),
+            use(temperatureZoneStr),
+            into(newId),
+            now;
         
         commitTransaction(*connection);
         return static_cast<long long>(newId);
@@ -209,62 +178,29 @@ bool WarehouseCellRepository::update(long long id, const models::WarehouseCell& 
     {
         beginTransaction(*connection);
         
-        std::string cellCodeCopy = warehouseCell.cellCode;
-        std::string zoneCopy = warehouseCell.zone;
-        std::string rackCopy = warehouseCell.rack;
-        std::string shelfCopy = warehouseCell.shelf;
-        std::string positionCopy = warehouseCell.position;
-        double maxVolumeCopy = warehouseCell.maxVolume;
-        double maxWeightCopy = warehouseCell.maxWeight;
-        double currentOccupancyCopy = warehouseCell.currentOccupancy;
         std::string statusStr = models::WarehouseCell::statusToString(warehouseCell.status);
         std::string temperatureZoneStr = models::WarehouseCell::temperatureZoneToString(warehouseCell.temperatureZone);
-        std::string lastInventoryDateCopy = warehouseCell.lastInventoryDate;
-        long long idCopy = id;
+        
+        models::WarehouseCell warehouseCellCopy = warehouseCell;
         
         Statement update(connection->getSession());
         
-        if (lastInventoryDateCopy.empty())
-        {
-            update << "UPDATE " << TABLE_NAME << " SET "
-                      "cell_code = $1, zone = $2, rack = $3, shelf = $4, position = $5, "
-                      "max_volume = $6, max_weight = $7, current_occupancy = $8, "
-                      "status = $9::cell_status, temperature_zone = $10::temperature_zone "
-                      "WHERE id = $11",
-                use(cellCodeCopy),
-                use(zoneCopy),
-                use(rackCopy),
-                use(shelfCopy),
-                use(positionCopy),
-                use(maxVolumeCopy),
-                use(maxWeightCopy),
-                use(currentOccupancyCopy),
-                use(statusStr),
-                use(temperatureZoneStr),
-                use(idCopy),
-                now;
-        }
-        else
-        {
-            update << "UPDATE " << TABLE_NAME << " SET "
-                      "cell_code = $1, zone = $2, rack = $3, shelf = $4, position = $5, "
-                      "max_volume = $6, max_weight = $7, current_occupancy = $8, "
-                      "status = $9::cell_status, temperature_zone = $10::temperature_zone, "
-                      "last_inventory_date = $11 WHERE id = $12",
-                use(cellCodeCopy),
-                use(zoneCopy),
-                use(rackCopy),
-                use(shelfCopy),
-                use(positionCopy),
-                use(maxVolumeCopy),
-                use(maxWeightCopy),
-                use(currentOccupancyCopy),
-                use(statusStr),
-                use(temperatureZoneStr),
-                use(lastInventoryDateCopy),
-                use(idCopy),
-                now;
-        }
+        update << "UPDATE " << TABLE_NAME << " SET "
+                  "cell_code = $1, zone = $2, rack = $3, shelf = $4, position = $5, "
+                  "max_volume = $6, max_weight = $7, current_occupancy = $8, "
+                  "status = $9::cell_status, temperature_zone = $10::temperature_zone "
+                  "WHERE id = $11",
+            use(warehouseCellCopy.cellCode),
+            use(warehouseCellCopy.zone),
+            use(warehouseCellCopy.rack),
+            use(warehouseCellCopy.shelf),
+            use(warehouseCellCopy.position),
+            use(warehouseCellCopy.maxVolume),
+            use(warehouseCellCopy.maxWeight),
+            use(warehouseCellCopy.currentOccupancy),
+            use(statusStr),
+            use(temperatureZoneStr),
+            use(warehouseCellCopy.id);
         
         int rowsAffected = update.execute();
         
@@ -297,7 +233,7 @@ bool WarehouseCellRepository::remove(long long id)
         int batchCount = 0;
         if (rs.rowCount() > 0)
         {
-            batchCount = rs.value(0, 0).convert<int>();
+            batchCount = rs.value(0, 0).isEmpty() ? 0 : rs.value(0, 0).convert<int>();
         }
         
         if (batchCount > 0)
@@ -339,7 +275,7 @@ int WarehouseCellRepository::count()
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0, 0).isEmpty() ? 0 : rs.value(0, 0).convert<int>();
         }
         
         return 0;
@@ -824,7 +760,7 @@ int WarehouseCellRepository::countByStatus(const std::string& status)
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0, 0).isEmpty() ? 0 : rs.value(0, 0).convert<int>();
         }
         
         return 0;
@@ -850,7 +786,7 @@ int WarehouseCellRepository::countByTemperatureZone(const std::string& temperatu
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0, 0).isEmpty() ? 0 : rs.value(0, 0).convert<int>();
         }
         
         return 0;
@@ -889,7 +825,7 @@ double WarehouseCellRepository::getTotalMaxVolume()
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0, 0).isEmpty() ? 0.0 : rs.value(0, 0).convert<double>();
         }
         
         return 0.0;
@@ -913,7 +849,7 @@ double WarehouseCellRepository::getTotalMaxWeight()
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0, 0).isEmpty() ? 0.0 : rs.value(0, 0).convert<double>();
         }
         
         return 0.0;
@@ -937,7 +873,7 @@ double WarehouseCellRepository::getTotalUsedVolume()
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0, 0).isEmpty() ? 0.0 : rs.value(0, 0).convert<double>();
         }
         
         return 0.0;
@@ -961,7 +897,7 @@ double WarehouseCellRepository::getTotalUsedWeight()
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0, 0).isEmpty() ? 0.0 : rs.value(0, 0).convert<double>();
         }
         
         return 0.0;
@@ -985,7 +921,7 @@ double WarehouseCellRepository::getAverageOccupancy()
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0, 0).isEmpty() ? 0.0 : rs.value(0, 0).convert<double>();
         }
         
         return 0.0;
@@ -1023,15 +959,15 @@ Poco::JSON::Array WarehouseCellRepository::getCellStatistics()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object stat;
-            stat.set("zone", rs.value("zone").convert<std::string>());
-            stat.set("total_cells", rs.value("total_cells").convert<int>());
-            stat.set("total_max_volume", rs.value("total_max_volume").convert<double>());
-            stat.set("total_max_weight", rs.value("total_max_weight").convert<double>());
-            stat.set("avg_occupancy", rs.value("avg_occupancy").convert<double>());
-            stat.set("empty_cells", rs.value("empty_cells").convert<int>());
-            stat.set("partial_cells", rs.value("partial_cells").convert<int>());
-            stat.set("full_cells", rs.value("full_cells").convert<int>());
-            stat.set("blocked_cells", rs.value("blocked_cells").convert<int>());
+            stat.set("zone", rs.value("zone").isEmpty() ? "" : rs.value("zone").convert<std::string>());
+            stat.set("total_cells", rs.value("total_cells").isEmpty() ? 0 : rs.value("total_cells").convert<int>());
+            stat.set("total_max_volume", rs.value("total_max_volume").isEmpty() ? 0.0 : rs.value("total_max_volume").convert<double>());
+            stat.set("total_max_weight", rs.value("total_max_weight").isEmpty() ? 0.0 : rs.value("total_max_weight").convert<double>());
+            stat.set("avg_occupancy", rs.value("avg_occupancy").isEmpty() ? 0.0 : rs.value("avg_occupancy").convert<double>());
+            stat.set("empty_cells", rs.value("empty_cells").isEmpty() ? 0 : rs.value("empty_cells").convert<int>());
+            stat.set("partial_cells", rs.value("partial_cells").isEmpty() ? 0 : rs.value("partial_cells").convert<int>());
+            stat.set("full_cells", rs.value("full_cells").isEmpty() ? 0 : rs.value("full_cells").convert<int>());
+            stat.set("blocked_cells", rs.value("blocked_cells").isEmpty() ? 0 : rs.value("blocked_cells").convert<int>());
             
             result.add(stat);
         }
@@ -1067,12 +1003,12 @@ Poco::JSON::Array WarehouseCellRepository::getZoneStatistics()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object stat;
-            stat.set("zone", rs.value("zone").convert<std::string>());
-            stat.set("temperature_zone", rs.value("temperature_zone").convert<std::string>());
-            stat.set("cell_count", rs.value("cell_count").convert<int>());
-            stat.set("total_volume", rs.value("total_volume").convert<double>());
-            stat.set("total_weight", rs.value("total_weight").convert<double>());
-            stat.set("avg_occupancy", rs.value("avg_occupancy").convert<double>());
+            stat.set("zone", rs.value("zone").isEmpty() ? "" : rs.value("zone").convert<std::string>());
+            stat.set("temperature_zone", rs.value("temperature_zone").isEmpty() ? "" : rs.value("temperature_zone").convert<std::string>());
+            stat.set("cell_count", rs.value("cell_count").isEmpty() ? 0 : rs.value("cell_count").convert<int>());
+            stat.set("total_volume", rs.value("total_volume").isEmpty() ? 0.0 : rs.value("total_volume").convert<double>());
+            stat.set("total_weight", rs.value("total_weight").isEmpty() ? 0.0 : rs.value("total_weight").convert<double>());
+            stat.set("avg_occupancy", rs.value("avg_occupancy").isEmpty() ? 0.0 : rs.value("avg_occupancy").convert<double>());
             
             result.add(stat);
         }
@@ -1116,11 +1052,11 @@ Poco::JSON::Array WarehouseCellRepository::getOccupancyReport()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object stat;
-            stat.set("occupancy_level", rs.value("occupancy_level").convert<std::string>());
-            stat.set("cell_count", rs.value("cell_count").convert<int>());
-            stat.set("total_volume", rs.value("total_volume").convert<double>());
-            stat.set("total_weight", rs.value("total_weight").convert<double>());
-            stat.set("avg_occupancy", rs.value("avg_occupancy").convert<double>());
+            stat.set("occupancy_level", rs.value("occupancy_level").isEmpty() ? "" : rs.value("occupancy_level").convert<std::string>());
+            stat.set("cell_count", rs.value("cell_count").isEmpty() ? 0 : rs.value("cell_count").convert<int>());
+            stat.set("total_volume", rs.value("total_volume").isEmpty() ? 0.0 : rs.value("total_volume").convert<double>());
+            stat.set("total_weight", rs.value("total_weight").isEmpty() ? 0.0 : rs.value("total_weight").convert<double>());
+            stat.set("avg_occupancy", rs.value("avg_occupancy").isEmpty() ? 0.0 : rs.value("avg_occupancy").convert<double>());
             
             result.add(stat);
         }
@@ -1160,14 +1096,14 @@ Poco::JSON::Array WarehouseCellRepository::getTemperatureZoneReport()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object stat;
-            stat.set("temperature_zone", rs.value("temperature_zone").convert<std::string>());
-            stat.set("cell_count", rs.value("cell_count").convert<int>());
-            stat.set("total_volume", rs.value("total_volume").convert<double>());
-            stat.set("total_weight", rs.value("total_weight").convert<double>());
-            stat.set("avg_occupancy", rs.value("avg_occupancy").convert<double>());
-            stat.set("empty_cells", rs.value("empty_cells").convert<int>());
-            stat.set("partial_cells", rs.value("partial_cells").convert<int>());
-            stat.set("full_cells", rs.value("full_cells").convert<int>());
+            stat.set("temperature_zone", rs.value("temperature_zone").isEmpty() ? "" : rs.value("temperature_zone").convert<std::string>());
+            stat.set("cell_count", rs.value("cell_count").isEmpty() ? 0 : rs.value("cell_count").convert<int>());
+            stat.set("total_volume", rs.value("total_volume").isEmpty() ? 0.0 : rs.value("total_volume").convert<double>());
+            stat.set("total_weight", rs.value("total_weight").isEmpty() ? 0.0 : rs.value("total_weight").convert<double>());
+            stat.set("avg_occupancy", rs.value("avg_occupancy").isEmpty() ? 0.0 : rs.value("avg_occupancy").convert<double>());
+            stat.set("empty_cells", rs.value("empty_cells").isEmpty() ? 0 : rs.value("empty_cells").convert<int>());
+            stat.set("partial_cells", rs.value("partial_cells").isEmpty() ? 0 : rs.value("partial_cells").convert<int>());
+            stat.set("full_cells", rs.value("full_cells").isEmpty() ? 0 : rs.value("full_cells").convert<int>());
             
             result.add(stat);
         }
@@ -1195,10 +1131,9 @@ std::vector<std::pair<long long, std::string>> WarehouseCellRepository::getCellC
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            result.emplace_back(
-                rs.value("id", 0).convert<long long>(),
-                rs.value("cell_code").convert<std::string>()
-            );
+            long long id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
+            std::string cellCode = rs.value("cell_code").isEmpty() ? "" : rs.value("cell_code").convert<std::string>();
+            result.emplace_back(id, cellCode);
         }
     }
     catch (const Poco::Exception& e)
@@ -1298,20 +1233,20 @@ std::vector<models::WarehouseCell> WarehouseCellRepository::findCellsForBatch(co
 models::WarehouseCell WarehouseCellRepository::mapRowToWarehouseCell(Poco::Data::Row& row) const
 {
     models::WarehouseCell cell;
-    cell.id = row.get(0).convert<long long>();
-    cell.cellCode = row.get(1).convert<std::string>();
-    cell.zone = row.get(2).convert<std::string>();
-    cell.rack = row.get(3).convert<std::string>();
-    cell.shelf = row.get(4).convert<std::string>();
-    cell.position = row.get(5).convert<std::string>();
-    cell.maxVolume = row.get(6).convert<double>();
-    cell.maxWeight = row.get(7).convert<double>();
-    cell.currentOccupancy = row.get(8).convert<double>();
+    cell.id = row.get(0).isEmpty() ? 0 : row.get(0).convert<long long>();
+    cell.cellCode = row.get(1).isEmpty() ? "" : row.get(1).convert<std::string>();
+    cell.zone = row.get(2).isEmpty() ? "" : row.get(2).convert<std::string>();
+    cell.rack = row.get(3).isEmpty() ? "" : row.get(3).convert<std::string>();
+    cell.shelf = row.get(4).isEmpty() ? "" : row.get(4).convert<std::string>();
+    cell.position = row.get(5).isEmpty() ? "" : row.get(5).convert<std::string>();
+    cell.maxVolume = row.get(6).isEmpty() ? 0.0 : row.get(6).convert<double>();
+    cell.maxWeight = row.get(7).isEmpty() ? 0.0 : row.get(7).convert<double>();
+    cell.currentOccupancy = row.get(8).isEmpty() ? 0.0 : row.get(8).convert<double>();
     
-    std::string statusStr = row.get(9).convert<std::string>();
+    std::string statusStr = row.get(9).isEmpty() ? "" : row.get(9).convert<std::string>();
     cell.status = models::WarehouseCell::stringToStatus(statusStr);
     
-    std::string temperatureZoneStr = row.get(10).convert<std::string>();
+    std::string temperatureZoneStr = row.get(10).isEmpty() ? "" : row.get(10).convert<std::string>();
     cell.temperatureZone = models::WarehouseCell::stringToTemperatureZone(temperatureZoneStr);
     
     if (row.fieldCount() > 11 && !row.get(11).isEmpty())

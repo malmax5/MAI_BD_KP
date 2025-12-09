@@ -62,31 +62,69 @@ std::unique_ptr<models::InventoryMovement> InventoryMovementRepository::findById
         if (rs.rowCount() > 0)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
+            
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
             
             return movement;
         }
@@ -130,32 +168,71 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -205,32 +282,71 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -252,27 +368,8 @@ long long InventoryMovementRepository::create(const models::InventoryMovement& m
         
         std::string movementTypeStr = models::InventoryMovement::movementTypeToString(movement.movementType);
         std::string statusStr = models::InventoryMovement::movementStatusToString(movement.status);
-        std::string movementDate = movement.movementDate.empty() ? 
-                                   DateUtils::formatDateTime(DateUtils::now()) : movement.movementDate;
         
-        Poco::Int64 productIdCopy = movement.productId;
-        Poco::Int64 batchIdCopy = movement.batchId;
-        Poco::Nullable<Poco::Int64> fromCellIdCopy;
-        if (movement.fromCellId > 0)
-            fromCellIdCopy = movement.fromCellId;
-        Poco::Nullable<Poco::Int64> toCellIdCopy;
-        if (movement.toCellId > 0)
-            toCellIdCopy = movement.toCellId;
-        int quantityCopy = movement.quantity;
-        Poco::Nullable<Poco::Int64> referenceIdCopy;
-        if (movement.referenceId > 0)
-            referenceIdCopy = movement.referenceId;
-        std::string referenceTypeCopy = movement.referenceType;
-        std::string movementDateCopy = movementDate;
-        Poco::Int64 performedByCopy = movement.performedBy;
-        std::string reasonCopy = movement.reason;
-        std::string movementTypeStrCopy = movementTypeStr;
-        std::string statusStrCopy = statusStr;
+        models::InventoryMovement movementCopy = movement;
         
         Poco::Data::Statement insert(connection->getSession());
         Poco::Int64 newId = 0;
@@ -283,18 +380,18 @@ long long InventoryMovementRepository::create(const models::InventoryMovement& m
                   "movement_date, performed_by, reason, status) "
                   "VALUES ($1::movement_type, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::movement_status) "
                   "RETURNING id",
-            use(movementTypeStrCopy),
-            use(productIdCopy),
-            use(batchIdCopy),
-            use(fromCellIdCopy),
-            use(toCellIdCopy),
-            use(quantityCopy),
-            use(referenceIdCopy),
-            use(referenceTypeCopy),
-            use(movementDateCopy),
-            use(performedByCopy),
-            use(reasonCopy),
-            use(statusStrCopy),
+            use(movementTypeStr),
+            use(movementCopy.productId),
+            use(movementCopy.batchId),
+            use(movementCopy.fromCellId),
+            use(movementCopy.toCellId),
+            use(movementCopy.quantity),
+            use(movementCopy.referenceId),
+            use(movementCopy.referenceType),
+            use(movementCopy.movementDate),
+            use(movementCopy.performedBy),
+            use(movementCopy.reason),
+            use(statusStr),
             into(newId),
             now;
         
@@ -319,25 +416,9 @@ bool InventoryMovementRepository::update(long long id, const models::InventoryMo
         std::string movementTypeStr = models::InventoryMovement::movementTypeToString(movement.movementType);
         std::string statusStr = models::InventoryMovement::movementStatusToString(movement.status);
         
+        models::InventoryMovement movementCopy = movement;
+
         Poco::Int64 idCopy = id;
-        std::string movementTypeStrCopy = movementTypeStr;
-        Poco::Int64 productIdCopy = movement.productId;
-        Poco::Int64 batchIdCopy = movement.batchId;
-        Poco::Nullable<Poco::Int64> fromCellIdCopy;
-        if (movement.fromCellId > 0)
-            fromCellIdCopy = movement.fromCellId;
-        Poco::Nullable<Poco::Int64> toCellIdCopy;
-        if (movement.toCellId > 0)
-            toCellIdCopy = movement.toCellId;
-        int quantityCopy = movement.quantity;
-        Poco::Nullable<Poco::Int64> referenceIdCopy;
-        if (movement.referenceId > 0)
-            referenceIdCopy = movement.referenceId;
-        std::string referenceTypeCopy = movement.referenceType;
-        std::string movementDateCopy = movement.movementDate;
-        Poco::Int64 performedByCopy = movement.performedBy;
-        std::string reasonCopy = movement.reason;
-        std::string statusStrCopy = statusStr;
         
         Poco::Data::Statement update(connection->getSession());
         update << "UPDATE " << TABLE_NAME << " SET "
@@ -346,18 +427,18 @@ bool InventoryMovementRepository::update(long long id, const models::InventoryMo
                   "reference_id = $7, reference_type = $8, movement_date = $9, "
                   "performed_by = $10, reason = $11, status = $12 "
                   "WHERE id = $13",
-            use(movementTypeStrCopy),
-            use(productIdCopy),
-            use(batchIdCopy),
-            use(fromCellIdCopy),
-            use(toCellIdCopy),
-            use(quantityCopy),
-            use(referenceIdCopy),
-            use(referenceTypeCopy),
-            use(movementDateCopy),
-            use(performedByCopy),
-            use(reasonCopy),
-            use(statusStrCopy),
+            use(movementTypeStr),
+            use(movementCopy.productId),
+            use(movementCopy.batchId),
+            use(movementCopy.fromCellId),
+            use(movementCopy.toCellId),
+            use(movementCopy.quantity),
+            use(movementCopy.referenceId),
+            use(movementCopy.referenceType),
+            use(movementCopy.movementDate),
+            use(movementCopy.performedBy),
+            use(movementCopy.reason),
+            use(statusStr),
             use(idCopy);
         
         int rowsAffected = update.execute();
@@ -491,32 +572,71 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -564,32 +684,71 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -647,30 +806,69 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
             movement->movementType = type;
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -718,30 +916,69 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
+            
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
             
             movement->status = status;
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -805,32 +1042,71 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -879,32 +1155,71 @@ std::vector<std::unique_ptr<models::InventoryMovement>> InventoryMovementReposit
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             auto movement = std::make_unique<models::InventoryMovement>();
-            movement->id = rs.value("id", 0).convert<long long>();
+            movement->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
             
-            std::string movementTypeStr = rs.value("movement_type").convert<std::string>();
+            std::string movementTypeStr = rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>();
             movement->movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
             
-            movement->productId = rs.value("product_id", 0).convert<long long>();
-            movement->batchId = rs.value("batch_id", 0).convert<long long>();
-            movement->fromCellId = rs.value("from_cell_id", 0).convert<long long>();
-            movement->toCellId = rs.value("to_cell_id", 0).convert<long long>();
-            movement->quantity = rs.value("quantity", 0).convert<int>();
-            movement->referenceId = rs.value("reference_id").isEmpty() ? 0 : rs.value("reference_id").convert<long long>();
-            movement->referenceType = rs.value("reference_type").convert<std::string>();
-            movement->movementDate = rs.value("movement_date").convert<std::string>();
-            movement->performedBy = rs.value("performed_by", 0).convert<long long>();
-            movement->reason = rs.value("reason").convert<std::string>();
+            movement->productId = rs.value("product_id").isEmpty() ? 0 : rs.value("product_id").convert<long long>();
+            movement->batchId = rs.value("batch_id").isEmpty() ? 0 : rs.value("batch_id").convert<long long>();
             
-            std::string statusStr = rs.value("status").convert<std::string>();
+            if (rs.value("from_cell_id").isEmpty()) {
+                movement->fromCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->fromCellId = rs.value("from_cell_id").convert<long long>();
+            }
+            
+            if (rs.value("to_cell_id").isEmpty()) {
+                movement->toCellId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->toCellId = rs.value("to_cell_id").convert<long long>();
+            }
+            
+            movement->quantity = rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>();
+            
+            if (rs.value("reference_id").isEmpty()) {
+                movement->referenceId = Poco::Nullable<Poco::Int64>();
+            } else {
+                movement->referenceId = rs.value("reference_id").convert<long long>();
+            }
+            
+            if (rs.value("reference_type").isEmpty()) {
+                movement->referenceType = Poco::Nullable<std::string>();
+            } else {
+                movement->referenceType = rs.value("reference_type").convert<std::string>();
+            }
+            
+            movement->movementDate = rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>();
+            movement->performedBy = rs.value("performed_by").isEmpty() ? 0 : rs.value("performed_by").convert<long long>();
+            
+            if (rs.value("reason").isEmpty()) {
+                movement->reason = Poco::Nullable<std::string>();
+            } else {
+                movement->reason = rs.value("reason").convert<std::string>();
+            }
+            
+            std::string statusStr = rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>();
             movement->status = models::InventoryMovement::stringToMovementStatus(statusStr);
             
-            movement->productName = rs.value("product_name").convert<std::string>();
-            movement->productSku = rs.value("product_sku").convert<std::string>();
-            movement->batchNumber = rs.value("batch_number").convert<std::string>();
-            movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
-            movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
-            movement->performedByName = rs.value("performed_by_name").convert<std::string>();
+            movement->productName = rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>();
+            movement->productSku = rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>();
+            movement->batchNumber = rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>();
             
+            if (rs.value("from_cell_code").isEmpty()) {
+                movement->fromCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->fromCellCode = rs.value("from_cell_code").convert<std::string>();
+            }
+            
+            if (rs.value("to_cell_code").isEmpty()) {
+                movement->toCellCode = Poco::Nullable<std::string>();
+            } else {
+                movement->toCellCode = rs.value("to_cell_code").convert<std::string>();
+            }
+            
+            movement->performedByName = rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>();
+            
+            rs.moveNext();
             movements.push_back(std::move(movement));
         }
     }
@@ -1343,10 +1658,10 @@ Poco::JSON::Array InventoryMovementRepository::getMovementStatistics()
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object stats;
-            stats.set("movement_type", rs.value("movement_type").convert<std::string>());
-            stats.set("status", rs.value("status").convert<std::string>());
-            stats.set("count", rs.value("count", 0).convert<int>());
-            stats.set("total_quantity", rs.value("total_quantity", 0).convert<int>());
+            stats.set("movement_type", rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>());
+            stats.set("status", rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>());
+            stats.set("count", rs.value("count").isEmpty() ? 0 : rs.value("count").convert<int>());
+            stats.set("total_quantity", rs.value("total_quantity").isEmpty() ? 0 : rs.value("total_quantity").convert<int>());
             
             jsonArray.add(stats);
         }
@@ -1396,17 +1711,17 @@ Poco::JSON::Array InventoryMovementRepository::getMovementReport(const std::stri
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object report;
-            report.set("movement_type", rs.value("movement_type").convert<std::string>());
-            report.set("status", rs.value("status").convert<std::string>());
-            report.set("sku", rs.value("sku").convert<std::string>());
-            report.set("product_name", rs.value("product_name").convert<std::string>());
-            report.set("batch_number", rs.value("batch_number").convert<std::string>());
-            report.set("quantity", rs.value("quantity", 0).convert<int>());
-            report.set("movement_date", rs.value("movement_date").convert<std::string>());
-            report.set("performed_by_name", rs.value("performed_by_name").convert<std::string>());
-            report.set("reason", rs.value("reason").convert<std::string>());
-            report.set("from_cell_code", rs.value("from_cell_code").convert<std::string>());
-            report.set("to_cell_code", rs.value("to_cell_code").convert<std::string>());
+            report.set("movement_type", rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>());
+            report.set("status", rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>());
+            report.set("sku", rs.value("sku").isEmpty() ? "" : rs.value("sku").convert<std::string>());
+            report.set("product_name", rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>());
+            report.set("batch_number", rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>());
+            report.set("quantity", rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>());
+            report.set("movement_date", rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>());
+            report.set("performed_by_name", rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>());
+            report.set("reason", rs.value("reason").isEmpty() ? "" : rs.value("reason").convert<std::string>());
+            report.set("from_cell_code", rs.value("from_cell_code").isEmpty() ? "" : rs.value("from_cell_code").convert<std::string>());
+            report.set("to_cell_code", rs.value("to_cell_code").isEmpty() ? "" : rs.value("to_cell_code").convert<std::string>());
             
             jsonArray.add(report);
         }
@@ -1470,18 +1785,18 @@ Poco::JSON::Array InventoryMovementRepository::getCellMovementHistory(long long 
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             Poco::JSON::Object movementJson;
-            movementJson.set("id", rs.value("id", 0).convert<long long>());
-            movementJson.set("movement_type", rs.value("movement_type").convert<std::string>());
-            movementJson.set("product_name", rs.value("product_name").convert<std::string>());
-            movementJson.set("product_sku", rs.value("product_sku").convert<std::string>());
-            movementJson.set("batch_number", rs.value("batch_number").convert<std::string>());
-            movementJson.set("quantity", rs.value("quantity", 0).convert<int>());
-            movementJson.set("from_cell_code", rs.value("from_cell_code").convert<std::string>());
-            movementJson.set("to_cell_code", rs.value("to_cell_code").convert<std::string>());
-            movementJson.set("movement_date", rs.value("movement_date").convert<std::string>());
-            movementJson.set("performed_by_name", rs.value("performed_by_name").convert<std::string>());
-            movementJson.set("reason", rs.value("reason").convert<std::string>());
-            movementJson.set("status", rs.value("status").convert<std::string>());
+            movementJson.set("id", rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>());
+            movementJson.set("movement_type", rs.value("movement_type").isEmpty() ? "" : rs.value("movement_type").convert<std::string>());
+            movementJson.set("product_name", rs.value("product_name").isEmpty() ? "" : rs.value("product_name").convert<std::string>());
+            movementJson.set("product_sku", rs.value("product_sku").isEmpty() ? "" : rs.value("product_sku").convert<std::string>());
+            movementJson.set("batch_number", rs.value("batch_number").isEmpty() ? "" : rs.value("batch_number").convert<std::string>());
+            movementJson.set("quantity", rs.value("quantity").isEmpty() ? 0 : rs.value("quantity").convert<int>());
+            movementJson.set("from_cell_code", rs.value("from_cell_code").isEmpty() ? "" : rs.value("from_cell_code").convert<std::string>());
+            movementJson.set("to_cell_code", rs.value("to_cell_code").isEmpty() ? "" : rs.value("to_cell_code").convert<std::string>());
+            movementJson.set("movement_date", rs.value("movement_date").isEmpty() ? "" : rs.value("movement_date").convert<std::string>());
+            movementJson.set("performed_by_name", rs.value("performed_by_name").isEmpty() ? "" : rs.value("performed_by_name").convert<std::string>());
+            movementJson.set("reason", rs.value("reason").isEmpty() ? "" : rs.value("reason").convert<std::string>());
+            movementJson.set("status", rs.value("status").isEmpty() ? "" : rs.value("status").convert<std::string>());
             
             jsonArray.add(movementJson);
         }
@@ -1594,8 +1909,8 @@ std::vector<std::pair<long long, std::string>> InventoryMovementRepository::getR
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
             result.emplace_back(
-                rs.value("id", 0).convert<long long>(),
-                rs.value("movement_description").convert<std::string>()
+                rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>(),
+                rs.value("movement_description").isEmpty() ? "" : rs.value("movement_description").convert<std::string>()
             );
         }
     }
@@ -1610,23 +1925,50 @@ std::vector<std::pair<long long, std::string>> InventoryMovementRepository::getR
 models::InventoryMovement InventoryMovementRepository::mapRowToMovement(Poco::Data::Row& row) const
 {
     models::InventoryMovement movement;
-    movement.id = row.get(0).convert<long long>();
+    movement.id = row.get(0).isEmpty() ? 0 : row.get(0).convert<long long>();
     
-    std::string movementTypeStr = row.get(1).convert<std::string>();
+    std::string movementTypeStr = row.get(1).isEmpty() ? "" : row.get(1).convert<std::string>();
     movement.movementType = models::InventoryMovement::stringToMovementType(movementTypeStr);
     
-    movement.productId = row.get(2).convert<long long>();
-    movement.batchId = row.get(3).convert<long long>();
-    movement.fromCellId = row.get(4).convert<long long>();
-    movement.toCellId = row.get(5).convert<long long>();
-    movement.quantity = row.get(6).convert<int>();
-    movement.referenceId = row.get(7).convert<long long>();
-    movement.referenceType = row.get(8).convert<std::string>();
-    movement.movementDate = row.get(9).convert<std::string>();
-    movement.performedBy = row.get(10).convert<long long>();
-    movement.reason = row.get(11).convert<std::string>();
+    movement.productId = row.get(2).isEmpty() ? 0 : row.get(2).convert<long long>();
+    movement.batchId = row.get(3).isEmpty() ? 0 : row.get(3).convert<long long>();
     
-    std::string statusStr = row.get(12).convert<std::string>();
+    if (row.get(4).isEmpty()) {
+        movement.fromCellId = Poco::Nullable<Poco::Int64>();
+    } else {
+        movement.fromCellId = row.get(4).convert<long long>();
+    }
+    
+    if (row.get(5).isEmpty()) {
+        movement.toCellId = Poco::Nullable<Poco::Int64>();
+    } else {
+        movement.toCellId = row.get(5).convert<long long>();
+    }
+    
+    movement.quantity = row.get(6).isEmpty() ? 0 : row.get(6).convert<int>();
+    
+    if (row.get(7).isEmpty()) {
+        movement.referenceId = Poco::Nullable<Poco::Int64>();
+    } else {
+        movement.referenceId = row.get(7).convert<long long>();
+    }
+    
+    if (row.get(8).isEmpty()) {
+        movement.referenceType = Poco::Nullable<std::string>();
+    } else {
+        movement.referenceType = row.get(8).convert<std::string>();
+    }
+    
+    movement.movementDate = row.get(9).isEmpty() ? "" : row.get(9).convert<std::string>();
+    movement.performedBy = row.get(10).isEmpty() ? 0 : row.get(10).convert<long long>();
+    
+    if (row.get(11).isEmpty()) {
+        movement.reason = Poco::Nullable<std::string>();
+    } else {
+        movement.reason = row.get(11).convert<std::string>();
+    }
+    
+    std::string statusStr = row.get(12).isEmpty() ? "" : row.get(12).convert<std::string>();
     movement.status = models::InventoryMovement::stringToMovementStatus(statusStr);
     
     return movement;

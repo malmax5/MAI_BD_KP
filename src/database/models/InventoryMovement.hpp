@@ -2,6 +2,7 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <Poco/Nullable.h>
 
 namespace warehouse_backend::database::models
 {
@@ -26,25 +27,25 @@ enum class MovementStatus
 class InventoryMovement
 {
 public:
-    long long id;
+    Poco::Int64 id;
     MovementType movementType;
-    long long productId;
-    long long batchId;
-    long long fromCellId;
-    long long toCellId;
+    Poco::Int64 productId;
+    Poco::Int64 batchId;
+    Poco::Nullable<Poco::Int64> fromCellId;
+    Poco::Nullable<Poco::Int64> toCellId;
     int quantity;
-    long long referenceId;
-    std::string referenceType;
+    Poco::Nullable<Poco::Int64> referenceId;
+    Poco::Nullable<std::string> referenceType;
     std::string movementDate;
-    long long performedBy;
-    std::string reason;
+    Poco::Int64 performedBy;
+    Poco::Nullable<std::string> reason;
     MovementStatus status;
 
     std::string productName;
     std::string productSku;
     std::string batchNumber;
-    std::string fromCellCode;
-    std::string toCellCode;
+    Poco::Nullable<std::string> fromCellCode;
+    Poco::Nullable<std::string> toCellCode;
     std::string performedByName;
 
     InventoryMovement();

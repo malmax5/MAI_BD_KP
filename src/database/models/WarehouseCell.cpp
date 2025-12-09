@@ -69,7 +69,7 @@ Poco::JSON::Object WarehouseCell::toJson() const
     json.set("status", statusToString(status));
     json.set("temperature_zone", temperatureZoneToString(temperatureZone));
     
-    if (!lastInventoryDate.empty())
+    if (!lastInventoryDate.isNull())
     {
         json.set("last_inventory_date", lastInventoryDate);
     }
@@ -104,7 +104,7 @@ bool WarehouseCell::validate() const
         return false;
     }
     
-    if (!lastInventoryDate.empty() && !Validator::isValidDate(lastInventoryDate))
+    if (!lastInventoryDate.isNull() && !Validator::isValidDate(lastInventoryDate.value()))
     {
         return false;
     }
