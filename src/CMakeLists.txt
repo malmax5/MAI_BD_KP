@@ -40,6 +40,19 @@ add_executable(warehouse_backend
     database/repositories/InventoryMovementRepository.cpp
     database/repositories/AuditLogRepository.cpp
     database/repositories/OrderPaymentRepository.cpp
+
+    #services
+    services/AuthService.cpp
+    services/UserService.cpp
+    services/OrderService.cpp
+    services/CategoryService.cpp
+    services/ProductService.cpp
+    services/InventoryService.cpp
+    services/ShipmentService.cpp
+    services/SupplierService.cpp
+    services/WarehouseCellService.cpp
+    services/BatchImportService.cpp
+    services/ReportService.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -51,6 +64,7 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_SOURCE_DIR}/database/models
         ${CMAKE_CURRENT_SOURCE_DIR}/database/repositories
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
+        ${CMAKE_CURRENT_SOURCE_DIR}/services
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/config
@@ -67,6 +81,7 @@ target_link_libraries(warehouse_backend
         Poco::JSON
         Poco::Data
         Poco::DataPostgreSQL
+        Poco::JWT
         ${PostgreSQL_LIBRARIES}
         ${LIBSODIUM_LIBRARIES}
         pthread
