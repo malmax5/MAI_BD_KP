@@ -44,6 +44,15 @@ add_executable(warehouse_backend
     #services
     services/AuthService.cpp
     services/UserService.cpp
+    services/OrderService.cpp
+    services/CategoryService.cpp
+    services/ProductService.cpp
+    services/InventoryService.cpp
+    services/ShipmentService.cpp
+    services/SupplierService.cpp
+    services/WarehouseCellService.cpp
+    services/BatchImportService.cpp
+    services/ReportService.cpp
 )
 
 target_include_directories(warehouse_backend
