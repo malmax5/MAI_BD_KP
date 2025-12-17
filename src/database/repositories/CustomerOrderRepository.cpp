@@ -51,27 +51,8 @@ std::unique_ptr<models::CustomerOrder> CustomerOrderRepository::findById(long lo
         
         if (rs.rowCount() > 0)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Row row = rs.row(0);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             Poco::Data::Statement userSelect(connection->getSession());
             Poco::Int64 userIdCopy = order->createdBy;
@@ -114,27 +95,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -172,27 +134,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -260,20 +203,12 @@ bool CustomerOrderRepository::update(long long id, const models::CustomerOrder& 
     try
     {
         beginTransaction(*connection);
+
+        models::CustomerOrder orderCopy = order;
+
+        std::string statusStr = models::CustomerOrder::statusToString(orderCopy.status);
+        std::string priorityStr = models::CustomerOrder::priorityToString(orderCopy.priority);
         
-        std::string statusStr = models::CustomerOrder::statusToString(order.status);
-        std::string priorityStr = models::CustomerOrder::priorityToString(order.priority);
-        
-        std::string customerNameCopy = order.customerName;
-        std::string customerEmailCopy = order.customerEmail;
-        std::string customerPhoneCopy = order.customerPhone;
-        std::string shippingAddressCopy = order.shippingAddress;
-        std::string statusStrCopy = statusStr;
-        double totalAmountCopy = order.totalAmount;
-        std::string priorityStrCopy = priorityStr;
-        std::string notesCopy = order.notes;
-        std::string estimatedDeliveryDateCopy = order.estimatedDeliveryDate;
-        std::string actualDeliveryDateCopy = order.actualDeliveryDate;
         long long idCopy = id;
         
         Poco::Data::Statement update(connection->getSession());
@@ -282,16 +217,16 @@ bool CustomerOrderRepository::update(long long id, const models::CustomerOrder& 
                   "shipping_address = $4, status = $5, total_amount = $6, "
                   "priority = $7, notes = $8, estimated_delivery_date = $9, "
                   "actual_delivery_date = $10 WHERE id = $11",
-            Poco::Data::Keywords::use(customerNameCopy),
-            Poco::Data::Keywords::use(customerEmailCopy),
-            Poco::Data::Keywords::use(customerPhoneCopy),
-            Poco::Data::Keywords::use(shippingAddressCopy),
-            Poco::Data::Keywords::use(statusStrCopy),
-            Poco::Data::Keywords::use(totalAmountCopy),
-            Poco::Data::Keywords::use(priorityStrCopy),
-            Poco::Data::Keywords::use(notesCopy),
-            Poco::Data::Keywords::use(estimatedDeliveryDateCopy),
-            Poco::Data::Keywords::use(actualDeliveryDateCopy),
+            Poco::Data::Keywords::use(orderCopy.customerName),
+            Poco::Data::Keywords::use(orderCopy.customerEmail),
+            Poco::Data::Keywords::use(orderCopy.customerPhone),
+            Poco::Data::Keywords::use(orderCopy.shippingAddress),
+            Poco::Data::Keywords::use(statusStr),
+            Poco::Data::Keywords::use(orderCopy.totalAmount),
+            Poco::Data::Keywords::use(priorityStr),
+            Poco::Data::Keywords::use(orderCopy.notes),
+            Poco::Data::Keywords::use(orderCopy.estimatedDeliveryDate),
+            Poco::Data::Keywords::use(orderCopy.actualDeliveryDate),
             Poco::Data::Keywords::use(idCopy);
         
         int rowsAffected = update.execute();
@@ -430,28 +365,9 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
-            
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
+
             orders.push_back(std::move(order));
         }
     }
@@ -486,27 +402,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::sea
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -562,25 +459,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            order->status = status;
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -616,24 +496,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            order->priority = priority;
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -668,27 +532,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = userId;
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -726,27 +571,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -783,27 +609,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -849,27 +656,8 @@ std::vector<std::unique_ptr<models::CustomerOrder>> CustomerOrderRepository::fin
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto order = std::make_unique<models::CustomerOrder>();
-            order->id = rs.value("id", 0).convert<long long>();
-            order->orderNumber = rs.value("order_number").convert<std::string>();
-            order->customerName = rs.value("customer_name").convert<std::string>();
-            order->customerEmail = rs.value("customer_email").convert<std::string>();
-            order->customerPhone = rs.value("customer_phone").convert<std::string>();
-            order->shippingAddress = rs.value("shipping_address").convert<std::string>();
-            order->orderDate = rs.value("order_date").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            order->status = models::CustomerOrder::stringToStatus(statusStr);
-            
-            order->totalAmount = rs.value("total_amount", 0.0).convert<double>();
-            
-            std::string priorityStr = rs.value("priority").convert<std::string>();
-            order->priority = models::CustomerOrder::stringToPriority(priorityStr);
-            
-            order->notes = rs.value("notes").convert<std::string>();
-            order->estimatedDeliveryDate = rs.value("estimated_delivery_date").convert<std::string>();
-            order->actualDeliveryDate = rs.value("actual_delivery_date").convert<std::string>();
-            order->createdBy = rs.value("created_by", 0).convert<long long>();
+            Poco::Data::Row row = rs.row(i);
+            auto order = std::make_unique<models::CustomerOrder>(mapRowToOrder(row));
             
             orders.push_back(std::move(order));
         }
@@ -897,8 +685,7 @@ bool CustomerOrderRepository::updateStatus(long long id, models::OrderStatus new
         Poco::Data::Statement update(connection->getSession());
         update << "UPDATE " << TABLE_NAME << " SET status = $1 WHERE id = $2",
             Poco::Data::Keywords::use(statusStrCopy),
-            Poco::Data::Keywords::use(idCopy),
-            now;
+            Poco::Data::Keywords::use(idCopy);
         
         int rowsAffected = update.execute();
         
@@ -1304,27 +1091,41 @@ std::unique_ptr<models::CustomerOrder> CustomerOrderRepository::getOrderWithItem
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Row row = rs.row(i);
             auto item = std::make_shared<models::OrderItem>();
-            item->id = rs.value("id", 0).convert<long long>();
-            item->orderId = rs.value("order_id", 0).convert<long long>();
-            item->productId = rs.value("product_id", 0).convert<long long>();
-            item->batchId = rs.value("batch_id", 0).convert<long long>();
-            item->quantityOrdered = rs.value("quantity_ordered", 0).convert<int>();
-            item->quantityShipped = rs.value("quantity_shipped", 0).convert<int>();
-            item->unitPrice = rs.value("unit_price", 0.0).convert<double>();
-            item->discountPercent = rs.value("discount_percent", 0.0).convert<double>();
-            item->lineTotal = rs.value("line_total", 0.0).convert<double>();
-            
-            std::string pickingStatusStr = rs.value("picking_status").convert<std::string>();
+
+            item->id = row["id"].convert<long long>();
+            item->orderId = row["order_id"].convert<long long>();
+            item->productId = row["product_id"].convert<long long>();
+            item->batchId = row["batch_id"].convert<long long>();
+            item->quantityOrdered = row["quantity_ordered"].convert<int>();
+            item->quantityShipped = row["quantity_shipped"].convert<int>();
+            item->unitPrice = row["unit_price"].convert<double>();
+            item->discountPercent = row["discount_percent"].convert<double>();
+            item->lineTotal = row["line_total"].convert<double>();
+
+            std::string pickingStatusStr = row["picking_status"].convert<std::string>();
             item->pickingStatus = models::OrderItem::stringToPickingStatus(pickingStatusStr);
-            
-            item->pickedBy = rs.value("picked_by", 0).convert<long long>();
-            item->pickedAt = rs.value("picked_at").convert<std::string>();
-            item->productName = rs.value("product_name").convert<std::string>();
-            item->productSku = rs.value("product_sku").convert<std::string>();
-            item->batchNumber = rs.value("batch_number").convert<std::string>();
-            item->pickedByName = rs.value("picked_by_name").convert<std::string>();
-            
+
+            if (!row["picked_by"].isEmpty())
+            {
+                item->pickedBy = row["picked_by"].convert<long long>();
+            }
+
+            if (!row["picked_at"].isEmpty())
+            {
+                item->pickedAt = row["picked_at"].convert<std::string>();
+            }
+
+            item->productName = row["product_name"].convert<std::string>();
+            item->productSku = row["product_sku"].convert<std::string>();
+            item->batchNumber = row["batch_number"].convert<std::string>();
+
+            if (!row["picked_by_name"].isEmpty())
+            {
+                item->pickedByName = row["picked_by_name"].convert<std::string>();
+            }
+
             order->addOrderItem(item);
         }
         
@@ -1363,10 +1164,18 @@ Poco::JSON::Array CustomerOrderRepository::getOrderStatistics()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+            std::string status = row["status"].convert<std::string>();
+            int count = row["count"].convert<int>();
+            double total = row["total"].convert<double>();
+            
+            std::cout << "DEBUG: Row " << i << ": status=" << status 
+                      << ", count=" << count << ", total=" << total << std::endl;
+            
             Poco::JSON::Object stat;
-            stat.set("status", rs.value("status").convert<std::string>());
-            stat.set("count", rs.value("count", 0).convert<int>());
-            stat.set("total", rs.value("total", 0.0).convert<double>());
+            stat.set("status", status);
+            stat.set("count", count);
+            stat.set("total", total);
             jsonArray.add(stat);
         }
     }
@@ -1392,8 +1201,7 @@ Poco::JSON::Array CustomerOrderRepository::getRevenueReport(const std::string& s
         select << "SELECT DATE(order_date) as order_day, COUNT(*) as order_count, "
                   "COALESCE(SUM(total_amount), 0) as daily_revenue, "
                   "AVG(total_amount) as avg_order_value "
-                  "FROM " << TABLE_NAME 
-                << " WHERE order_date >= $1 AND order_date <= $2 "
+                  "FROM " << TABLE_NAME << " WHERE order_date >= $1 AND order_date <= $2 "
                   "AND status = 'delivered' "
                   "GROUP BY DATE(order_date) ORDER BY order_day DESC",
             Poco::Data::Keywords::use(startDateCopy),
@@ -1404,11 +1212,24 @@ Poco::JSON::Array CustomerOrderRepository::getRevenueReport(const std::string& s
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+            
+            std::string date = row["order_day"].convert<std::string>();
+            int orderCount = row["order_count"].convert<int>();
+            double dailyRevenue = row["daily_revenue"].convert<double>();
+            double avgOrderValue = row["avg_order_value"].convert<double>();
+            
+            std::cout << "DEBUG: Row " << i << ": date=" << date 
+                      << ", order_count=" << orderCount 
+                      << ", daily_revenue=" << dailyRevenue 
+                      << ", avg_order_value=" << avgOrderValue << std::endl;
+            
             Poco::JSON::Object dayStat;
-            dayStat.set("date", rs.value("order_day").convert<std::string>());
-            dayStat.set("order_count", rs.value("order_count", 0).convert<int>());
-            dayStat.set("daily_revenue", rs.value("daily_revenue", 0.0).convert<double>());
-            dayStat.set("avg_order_value", rs.value("avg_order_value", 0.0).convert<double>());
+            dayStat.set("date", date);
+            dayStat.set("order_count", orderCount);
+            dayStat.set("daily_revenue", dailyRevenue);
+            dayStat.set("avg_order_value", avgOrderValue);
+            
             jsonArray.add(dayStat);
         }
     }
@@ -1525,26 +1346,48 @@ std::vector<std::string> CustomerOrderRepository::getUniqueCustomers()
 models::CustomerOrder CustomerOrderRepository::mapRowToOrder(Poco::Data::Row& row) const
 {
     models::CustomerOrder order;
-    order.id = row.get(0).convert<long long>();
-    order.orderNumber = row.get(1).convert<std::string>();
-    order.customerName = row.get(2).convert<std::string>();
-    order.customerEmail = row.get(3).convert<std::string>();
-    order.customerPhone = row.get(4).convert<std::string>();
-    order.shippingAddress = row.get(5).convert<std::string>();
-    order.orderDate = row.get(6).convert<std::string>();
     
-    std::string statusStr = row.get(7).convert<std::string>();
+    order.id = row["id"].convert<long long>();
+    order.orderNumber = row["order_number"].convert<std::string>();
+    order.customerName = row["customer_name"].convert<std::string>();
+    
+    if (!row["customer_email"].isEmpty())
+    {
+        order.customerEmail = row["customer_email"].convert<std::string>();
+    }
+    
+    if (!row["customer_phone"].isEmpty())
+    {
+        order.customerPhone = row["customer_phone"].convert<std::string>();
+    }
+    
+    order.shippingAddress = row["shipping_address"].convert<std::string>();
+    order.orderDate = row["order_date"].convert<std::string>();
+    
+    std::string statusStr = row["status"].convert<std::string>();
     order.status = models::CustomerOrder::stringToStatus(statusStr);
     
-    order.totalAmount = row.get(8).convert<double>();
+    order.totalAmount = row["total_amount"].convert<double>();
     
-    std::string priorityStr = row.get(9).convert<std::string>();
+    std::string priorityStr = row["priority"].convert<std::string>();
     order.priority = models::CustomerOrder::stringToPriority(priorityStr);
     
-    order.notes = row.get(10).convert<std::string>();
-    order.estimatedDeliveryDate = row.get(11).convert<std::string>();
-    order.actualDeliveryDate = row.get(12).convert<std::string>();
-    order.createdBy = row.get(13).convert<long long>();
+    if (!row["notes"].isEmpty())
+    {
+        order.notes = row["notes"].convert<std::string>();
+    }
+    
+    if (!row["estimated_delivery_date"].isEmpty())
+    {
+        order.estimatedDeliveryDate = row["estimated_delivery_date"].convert<std::string>();
+    }
+    
+    if (!row["actual_delivery_date"].isEmpty())
+    {
+        order.actualDeliveryDate = row["actual_delivery_date"].convert<std::string>();
+    }
+    
+    order.createdBy = row["created_by"].convert<long long>();
     
     return order;
 }

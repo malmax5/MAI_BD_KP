@@ -30,32 +30,47 @@ Product::Product(const Poco::JSON::Object& json)
 {
     sku = JsonUtils::getString(json, "sku", "");
     name = JsonUtils::getString(json, "name", "");
-    description = JsonUtils::getString(json, "description", "");
+
+    if (json.has("description") && !json.isNull("description"))
+        description = JsonUtils::getString(json, "description", "");
+    else
+        description.clear();
+
     categoryId = JsonUtils::getInt(json, "category_id", 0);
     supplierId = JsonUtils::getInt(json, "supplier_id", 0);
     unitPrice = JsonUtils::getDouble(json, "unit_price", 0.0);
     weight = JsonUtils::getDouble(json, "weight", 0.0);
-    dimensions = JsonUtils::getString(json, "dimensions", "");
+
+    if (json.has("dimensions") && !json.isNull("dimensions"))
+        dimensions = JsonUtils::getString(json, "dimensions", "");
+    else
+        dimensions.clear();
+
     minStockLevel = JsonUtils::getInt(json, "min_stock_level", 0);
     maxStockLevel = JsonUtils::getInt(json, "max_stock_level", 1000);
     isActive = JsonUtils::getBool(json, "is_active", true);
-    createdAt = JsonUtils::getString(json, "created_at", "");
+
+    if (json.has("created_at") && !json.isNull("created_at"))
+        createdAt = JsonUtils::getString(json, "created_at", "");
+    else
+        createdAt.clear();
+
     currentStock = JsonUtils::getInt(json, "current_stock", 0);
-    
+
     if (json.has("id"))
-    {
         id = JsonUtils::getInt(json, "id", 0);
-    }
-    
+    else
+        id = 0;
+
     if (json.has("category_name"))
-    {
         categoryName = JsonUtils::getString(json, "category_name", "");
-    }
-    
+    else
+        categoryName.clear();
+
     if (json.has("supplier_name"))
-    {
         supplierName = JsonUtils::getString(json, "supplier_name", "");
-    }
+    else
+        supplierName.clear();
 }
 
 Poco::JSON::Object Product::toJson() const
@@ -72,7 +87,7 @@ Poco::JSON::Object Product::toJson() const
     
     if (!description.isNull())
     {
-        json.set("description", description);
+        json.set("description", description.value());
     }
     
     json.set("category_id", categoryId);
@@ -86,13 +101,17 @@ Poco::JSON::Object Product::toJson() const
     
     if (!dimensions.isNull())
     {
-        json.set("dimensions", dimensions);
+        json.set("dimensions", dimensions.value());
     }
     
     json.set("min_stock_level", minStockLevel);
     json.set("max_stock_level", maxStockLevel);
     json.set("is_active", isActive);
-    json.set("created_at", createdAt);
+    
+    if (!createdAt.isNull())
+    {
+        json.set("created_at", createdAt.value());
+    }
     
     json.set("current_stock", currentStock);
     

@@ -26,6 +26,7 @@ public:
     bool remove(long long id) override;
     bool softDelete(long long id) override;
     int count() override;
+    bool clearCell(long long id);
     
     Poco::JSON::Array findAllAsJson() override;
     Poco::JSON::Object findByIdAsJson(long long id) override;

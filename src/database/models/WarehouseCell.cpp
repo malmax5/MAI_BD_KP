@@ -34,18 +34,25 @@ WarehouseCell::WarehouseCell(const Poco::JSON::Object& json)
     maxVolume = JsonUtils::getDouble(json, "max_volume", 0.0);
     maxWeight = JsonUtils::getDouble(json, "max_weight", 0.0);
     currentOccupancy = JsonUtils::getDouble(json, "current_occupancy", 0.0);
-    
+
     std::string statusStr = JsonUtils::getString(json, "status", "empty");
     status = stringToStatus(statusStr);
-    
+
     std::string zoneStr = JsonUtils::getString(json, "temperature_zone", "normal");
     temperatureZone = stringToTemperatureZone(zoneStr);
-    
-    lastInventoryDate = JsonUtils::getString(json, "last_inventory_date", "");
-    
-    if (json.has("id"))
+
+    if (json.has("last_inventory_date") && !json.isNull("last_inventory_date"))
     {
-        id = JsonUtils::getInt(json, "id", 0);
+        lastInventoryDate = JsonUtils::getString(json, "last_inventory_date", "");
+    }
+
+    if (json.has("id") && !json.isNull("id"))
+    {
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    }
+    else
+    {
+        id = 0;
     }
 }
 
@@ -74,7 +81,6 @@ Poco::JSON::Object WarehouseCell::toJson() const
         json.set("last_inventory_date", lastInventoryDate);
     }
     
-    // Вычисляемые поля
     json.set("available_volume", getAvailableVolume());
     json.set("available_weight", getAvailableWeight());
     json.set("is_available", status != CellStatus::BLOCKED && status != CellStatus::FULL);
@@ -142,7 +148,6 @@ void WarehouseCell::updateOccupancy(double volume, double weight)
     double volumePercentage = (volume / maxVolume) * 100.0;
     double weightPercentage = (weight / maxWeight) * 100.0;
     
-    // Используем максимальное значение из двух метрик
     double newOccupancy = std::max(volumePercentage, weightPercentage);
     
     if (newOccupancy < 10.0)

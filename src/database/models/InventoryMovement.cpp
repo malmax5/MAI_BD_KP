@@ -28,55 +28,45 @@ InventoryMovement::InventoryMovement(const Poco::JSON::Object& json)
 {
     std::string typeStr = JsonUtils::getString(json, "movement_type", "transfer");
     movementType = stringToMovementType(typeStr);
-    
-    productId = JsonUtils::getInt(json, "product_id", 0);
-    batchId = JsonUtils::getInt(json, "batch_id", 0);
-    fromCellId = JsonUtils::getInt(json, "from_cell_id", 0);
-    toCellId = JsonUtils::getInt(json, "to_cell_id", 0);
+
+    productId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "product_id", 0));
+    batchId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "batch_id", 0));
     quantity = JsonUtils::getInt(json, "quantity", 0);
-    referenceId = JsonUtils::getInt(json, "reference_id", 0);
-    referenceType = JsonUtils::getString(json, "reference_type", "");
+    performedBy = static_cast<Poco::Int64>(JsonUtils::getInt(json, "performed_by", 0));
+
     movementDate = JsonUtils::getString(json, "movement_date", "");
-    performedBy = JsonUtils::getInt(json, "performed_by", 0);
-    reason = JsonUtils::getString(json, "reason", "");
-    
-    std::string statusStr = JsonUtils::getString(json, "status", "planned");
-    status = stringToMovementStatus(statusStr);
-    
-    if (json.has("id"))
-    {
-        id = JsonUtils::getInt(json, "id", 0);
-    }
-    
-    if (json.has("product_name"))
-    {
-        productName = JsonUtils::getString(json, "product_name", "");
-    }
-    
-    if (json.has("product_sku"))
-    {
-        productSku = JsonUtils::getString(json, "product_sku", "");
-    }
-    
-    if (json.has("batch_number"))
-    {
-        batchNumber = JsonUtils::getString(json, "batch_number", "");
-    }
-    
-    if (json.has("from_cell_code"))
-    {
+    status = stringToMovementStatus(JsonUtils::getString(json, "status", "planned"));
+
+    productName = JsonUtils::getString(json, "product_name", "");
+    productSku = JsonUtils::getString(json, "product_sku", "");
+    batchNumber = JsonUtils::getString(json, "batch_number", "");
+    performedByName = JsonUtils::getString(json, "performed_by_name", "");
+
+    if (json.has("from_cell_id") && !json.isNull("from_cell_id"))
+        fromCellId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "from_cell_id", 0));
+
+    if (json.has("to_cell_id") && !json.isNull("to_cell_id"))
+        toCellId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "to_cell_id", 0));
+
+    if (json.has("reference_id") && !json.isNull("reference_id"))
+        referenceId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "reference_id", 0));
+
+    if (json.has("reference_type") && !json.isNull("reference_type"))
+        referenceType = JsonUtils::getString(json, "reference_type", "");
+
+    if (json.has("reason") && !json.isNull("reason"))
+        reason = JsonUtils::getString(json, "reason", "");
+
+    if (json.has("from_cell_code") && !json.isNull("from_cell_code"))
         fromCellCode = JsonUtils::getString(json, "from_cell_code", "");
-    }
-    
-    if (json.has("to_cell_code"))
-    {
+
+    if (json.has("to_cell_code") && !json.isNull("to_cell_code"))
         toCellCode = JsonUtils::getString(json, "to_cell_code", "");
-    }
-    
-    if (json.has("performed_by_name"))
-    {
-        performedByName = JsonUtils::getString(json, "performed_by_name", "");
-    }
+
+    if (json.has("id") && !json.isNull("id"))
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    else
+        id = 0;
 }
 
 Poco::JSON::Object InventoryMovement::toJson() const
@@ -92,26 +82,26 @@ Poco::JSON::Object InventoryMovement::toJson() const
     json.set("product_id", productId);
     json.set("batch_id", batchId);
     
-    if (fromCellId.value() > 0)
+    if (!fromCellId.isNull() && fromCellId.value() > 0)
     {
-        json.set("from_cell_id", fromCellId);
+        json.set("from_cell_id", fromCellId.value());
     }
     
-    if (toCellId.value() > 0)
+    if (!toCellId.isNull() && toCellId.value() > 0)
     {
-        json.set("to_cell_id", toCellId);
+        json.set("to_cell_id", toCellId.value());
     }
     
     json.set("quantity", quantity);
     
-    if (referenceId.value() > 0)
+    if (!referenceId.isNull() && referenceId.value() > 0)
     {
-        json.set("reference_id", referenceId);
+        json.set("reference_id", referenceId.value());
     }
     
     if (!referenceType.isNull())
     {
-        json.set("reference_type", referenceType);
+        json.set("reference_type", referenceType.value());
     }
     
     json.set("movement_date", movementDate);
@@ -119,7 +109,7 @@ Poco::JSON::Object InventoryMovement::toJson() const
     
     if (!reason.isNull())
     {
-        json.set("reason", reason);
+        json.set("reason", reason.value());
     }
     
     json.set("status", movementStatusToString(status));
@@ -141,12 +131,12 @@ Poco::JSON::Object InventoryMovement::toJson() const
     
     if (!fromCellCode.isNull())
     {
-        json.set("from_cell_code", fromCellCode);
+        json.set("from_cell_code", fromCellCode.value());
     }
     
     if (!toCellCode.isNull())
     {
-        json.set("to_cell_code", toCellCode);
+        json.set("to_cell_code", toCellCode.value());
     }
     
     if (!performedByName.empty())
