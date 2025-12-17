@@ -22,20 +22,32 @@ Supplier::Supplier()
 Supplier::Supplier(const Poco::JSON::Object& json)
 {
     name = JsonUtils::getString(json, "name", "");
-    contactPerson = JsonUtils::getString(json, "contact_person", "");
-    email = JsonUtils::getString(json, "email", "");
-    phone = JsonUtils::getString(json, "phone", "");
-    address = JsonUtils::getString(json, "address", "");
     taxId = JsonUtils::getString(json, "tax_id", "");
-    paymentTerms = JsonUtils::getString(json, "payment_terms", "");
     rating = JsonUtils::getDouble(json, "rating", 0.0);
-    createdAt = JsonUtils::getString(json, "created_at", "");
     isActive = JsonUtils::getBool(json, "is_active", true);
-    
-    if (json.has("id"))
-    {
-        id = JsonUtils::getInt(json, "id", 0);
-    }
+
+    if (json.has("contact_person") && !json.isNull("contact_person"))
+        contactPerson = JsonUtils::getString(json, "contact_person", "");
+
+    if (json.has("email") && !json.isNull("email"))
+        email = JsonUtils::getString(json, "email", "");
+
+    if (json.has("phone") && !json.isNull("phone"))
+        phone = JsonUtils::getString(json, "phone", "");
+
+    if (json.has("address") && !json.isNull("address"))
+        address = JsonUtils::getString(json, "address", "");
+
+    if (json.has("payment_terms") && !json.isNull("payment_terms"))
+        paymentTerms = JsonUtils::getString(json, "payment_terms", "");
+
+    if (json.has("created_at") && !json.isNull("created_at"))
+        createdAt = JsonUtils::getString(json, "created_at", "");
+
+    if (json.has("id") && !json.isNull("id"))
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    else
+        id = 0;
 }
 
 Poco::JSON::Object Supplier::toJson() const
@@ -51,22 +63,22 @@ Poco::JSON::Object Supplier::toJson() const
     
     if (!contactPerson.isNull())
     {
-        json.set("contact_person", contactPerson);
+        json.set("contact_person", contactPerson.value());
     }
     
     if (!email.isNull())
     {
-        json.set("email", email);
+        json.set("email", email.value());
     }
     
     if (!phone.isNull())
     {
-        json.set("phone", phone);
+        json.set("phone", phone.value());
     }
     
     if (!address.isNull())
     {
-        json.set("address", address);
+        json.set("address", address.value());
     }
     
     if (!taxId.empty())
@@ -76,11 +88,16 @@ Poco::JSON::Object Supplier::toJson() const
     
     if (!paymentTerms.isNull())
     {
-        json.set("payment_terms", paymentTerms);
+        json.set("payment_terms", paymentTerms.value());
     }
     
     json.set("rating", rating);
-    json.set("created_at", createdAt);
+
+    if (!createdAt.isNull())
+    {
+        json.set("created_at", createdAt.value());
+    }
+
     json.set("is_active", isActive);
     
     return json;

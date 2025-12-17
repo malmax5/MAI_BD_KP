@@ -1,4 +1,3 @@
-// warehouse_backend/src/services/ProductService.hpp - добавление новой функции
 #pragma once
 
 #include "../database/repositories/ProductRepository.hpp"

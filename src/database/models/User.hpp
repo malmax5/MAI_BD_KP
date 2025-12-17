@@ -9,6 +9,7 @@ namespace warehouse_backend::database::models
 
 enum class UserRole
 {
+    UNKNOWN,
     ADMIN,
     MANAGER,
     WORKER,

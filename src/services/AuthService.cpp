@@ -154,7 +154,7 @@ RegistrationResult AuthService::registerUser(const std::string& username,
         user.role = database::models::User::stringToRole(role);
         user.phoneNumber = phoneNumber;
         user.isActive = true;
-        
+
         if (!user.validate())
         {
             result.success = false;

@@ -21,7 +21,6 @@
 namespace warehouse_backend::utils
 {
 
-// Инициализация регулярных выражений
 const std::regex Validator::EMAIL_REGEX(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
 const std::regex Validator::PHONE_REGEX(R"(^\+?[1-9]\d{1,14}$)");
 const std::regex Validator::URL_REGEX(R"(^(https?|ftp)://[^\s/$.?#].[^\s]*$)");

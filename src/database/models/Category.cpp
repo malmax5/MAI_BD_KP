@@ -21,18 +21,38 @@ Category::Category()
 Category::Category(const Poco::JSON::Object& json)
 {
     name = JsonUtils::getString(json, "name", "");
-    description = JsonUtils::getString(json, "description", "");
-    parentId = JsonUtils::getInt(json, "parent_id", 0);
-    path = JsonUtils::getString(json, "path", "");
     sortOrder = JsonUtils::getInt(json, "sort_order", 0);
-    createdAt = JsonUtils::getString(json, "created_at", "");
-    
-    if (json.has("id"))
+
+    if (json.has("description") && !json.isNull("description"))
     {
-        id = JsonUtils::getInt(json, "id", 0);
+        description = JsonUtils::getString(json, "description", "");
     }
-    
-    if (json.has("parent_name"))
+
+    if (json.has("parent_id") && !json.isNull("parent_id"))
+    {
+        parentId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "parent_id", 0));
+    }
+
+    if (json.has("path") && !json.isNull("path"))
+    {
+        path = JsonUtils::getString(json, "path", "");
+    }
+
+    if (json.has("created_at") && !json.isNull("created_at"))
+    {
+        createdAt = JsonUtils::getString(json, "created_at", "");
+    }
+
+    if (json.has("id") && !json.isNull("id"))
+    {
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    }
+    else
+    {
+        id = 0;
+    }
+
+    if (json.has("parent_name") && !json.isNull("parent_name"))
     {
         parentName = JsonUtils::getString(json, "parent_name", "");
     }
@@ -51,25 +71,29 @@ Poco::JSON::Object Category::toJson() const
     
     if (!description.isNull())
     {
-        json.set("description", description);
+        json.set("description", description.value());
     }
     
-    if (parentId.value() > 0)
+    if (!parentId.isNull() && parentId.value() > 0)
     {
-        json.set("parent_id", parentId);
+        json.set("parent_id", parentId.value());
     }
     
     if (!path.isNull())
     {
-        json.set("path", path);
+        json.set("path", path.value());
     }
     
     json.set("sort_order", sortOrder);
-    json.set("created_at", createdAt);
+
+    if (!createdAt.isNull())
+    {
+        json.set("created_at", createdAt.value());
+    }
     
     if (!parentName.isNull())
     {
-        json.set("parent_name", parentName);
+        json.set("parent_name", parentName.value());
     }
     
     return json;

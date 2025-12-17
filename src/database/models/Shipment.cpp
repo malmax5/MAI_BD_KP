@@ -25,36 +25,44 @@ Shipment::Shipment()
 Shipment::Shipment(const Poco::JSON::Object& json)
 {
     shipmentNumber = JsonUtils::getString(json, "shipment_number", "");
-    orderId = JsonUtils::getInt(json, "order_id", 0);
+    orderId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "order_id", 0));
     carrier = JsonUtils::getString(json, "carrier", "");
-    trackingNumber = JsonUtils::getString(json, "tracking_number", "");
-    shippingMethod = JsonUtils::getString(json, "shipping_method", "");
-    shippingCost = JsonUtils::getDouble(json, "shipping_cost", 0.0);
     shipmentDate = JsonUtils::getString(json, "shipment_date", "");
-    estimatedArrival = JsonUtils::getString(json, "estimated_arrival", "");
-    actualArrival = JsonUtils::getString(json, "actual_arrival", "");
-    
+
     std::string statusStr = JsonUtils::getString(json, "status", "preparing");
     status = stringToStatus(statusStr);
-    
-    notes = JsonUtils::getString(json, "notes", "");
-    weightTotal = JsonUtils::getDouble(json, "weight_total", 0.0);
-    dimensionsTotal = JsonUtils::getString(json, "dimensions_total", "");
-    
-    if (json.has("id"))
-    {
-        id = JsonUtils::getInt(json, "id", 0);
-    }
-    
-    if (json.has("order_number"))
-    {
-        orderNumber = JsonUtils::getString(json, "order_number", "");
-    }
-    
-    if (json.has("customer_name"))
-    {
-        customerName = JsonUtils::getString(json, "customer_name", "");
-    }
+
+    orderNumber = JsonUtils::getString(json, "order_number", "");
+    customerName = JsonUtils::getString(json, "customer_name", "");
+
+    if (json.has("tracking_number") && !json.isNull("tracking_number"))
+        trackingNumber = JsonUtils::getString(json, "tracking_number", "");
+
+    if (json.has("shipping_method") && !json.isNull("shipping_method"))
+        shippingMethod = JsonUtils::getString(json, "shipping_method", "");
+
+    if (json.has("shipping_cost") && !json.isNull("shipping_cost"))
+        shippingCost = JsonUtils::getDouble(json, "shipping_cost", 0.0);
+
+    if (json.has("estimated_arrival") && !json.isNull("estimated_arrival"))
+        estimatedArrival = JsonUtils::getString(json, "estimated_arrival", "");
+
+    if (json.has("actual_arrival") && !json.isNull("actual_arrival"))
+        actualArrival = JsonUtils::getString(json, "actual_arrival", "");
+
+    if (json.has("notes") && !json.isNull("notes"))
+        notes = JsonUtils::getString(json, "notes", "");
+
+    if (json.has("weight_total") && !json.isNull("weight_total"))
+        weightTotal = JsonUtils::getDouble(json, "weight_total", 0.0);
+
+    if (json.has("dimensions_total") && !json.isNull("dimensions_total"))
+        dimensionsTotal = JsonUtils::getString(json, "dimensions_total", "");
+
+    if (json.has("id") && !json.isNull("id"))
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    else
+        id = 0;
 }
 
 Poco::JSON::Object Shipment::toJson() const
@@ -72,39 +80,46 @@ Poco::JSON::Object Shipment::toJson() const
     
     if (!trackingNumber.isNull())
     {
-        json.set("tracking_number", trackingNumber);
+        json.set("tracking_number", trackingNumber.value());
     }
     
     if (!shippingMethod.isNull())
     {
-        json.set("shipping_method", shippingMethod);
+        json.set("shipping_method", shippingMethod.value());
     }
     
-    json.set("shipping_cost", shippingCost);
+    if (!shippingCost.isNull())
+    {
+        json.set("shipping_cost", shippingCost.value());
+    }
+
     json.set("shipment_date", shipmentDate);
     
     if (!estimatedArrival.isNull())
     {
-        json.set("estimated_arrival", estimatedArrival);
+        json.set("estimated_arrival", estimatedArrival.value());
     }
     
     if (!actualArrival.isNull())
     {
-        json.set("actual_arrival", actualArrival);
+        json.set("actual_arrival", actualArrival.value());
     }
     
     json.set("status", statusToString(status));
     
     if (!notes.isNull())
     {
-        json.set("notes", notes);
+        json.set("notes", notes.value());
     }
     
-    json.set("weight_total", weightTotal);
+    if (!weightTotal.isNull())
+    {
+        json.set("weight_total", weightTotal.value());
+    }
     
     if (!dimensionsTotal.isNull())
     {
-        json.set("dimensions_total", dimensionsTotal);
+        json.set("dimensions_total", dimensionsTotal.value());
     }
     
     if (!orderNumber.empty())

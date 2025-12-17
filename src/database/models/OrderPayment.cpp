@@ -24,29 +24,26 @@ OrderPayment::OrderPayment()
 
 OrderPayment::OrderPayment(const Poco::JSON::Object& json)
 {
-    orderId = JsonUtils::getInt(json, "order_id", 0);
+    orderId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "order_id", 0));
     paymentMethod = JsonUtils::getString(json, "payment_method", "");
     paymentStatus = JsonUtils::getString(json, "payment_status", "pending");
     amount = JsonUtils::getDouble(json, "amount", 0.0);
-    transactionId = JsonUtils::getString(json, "transaction_id", "");
-    paymentDate = JsonUtils::getString(json, "payment_date", "");
     createdAt = JsonUtils::getString(json, "created_at", "");
     orderTotal = JsonUtils::getDouble(json, "order_total", 0.0);
-    
-    if (json.has("id"))
-    {
-        id = JsonUtils::getInt(json, "id", 0);
-    }
-    
-    if (json.has("order_number"))
-    {
-        orderNumber = JsonUtils::getString(json, "order_number", "");
-    }
-    
-    if (json.has("customer_name"))
-    {
-        customerName = JsonUtils::getString(json, "customer_name", "");
-    }
+
+    orderNumber = JsonUtils::getString(json, "order_number", "");
+    customerName = JsonUtils::getString(json, "customer_name", "");
+
+    if (json.has("transaction_id") && !json.isNull("transaction_id"))
+        transactionId = JsonUtils::getString(json, "transaction_id", "");
+
+    if (json.has("payment_date") && !json.isNull("payment_date"))
+        paymentDate = JsonUtils::getString(json, "payment_date", "");
+
+    if (json.has("id") && !json.isNull("id"))
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    else
+        id = 0;
 }
 
 Poco::JSON::Object OrderPayment::toJson() const
@@ -65,12 +62,12 @@ Poco::JSON::Object OrderPayment::toJson() const
     
     if (!transactionId.isNull())
     {
-        json.set("transaction_id", transactionId);
+        json.set("transaction_id", transactionId.value());
     }
     
     if (!paymentDate.isNull())
     {
-        json.set("payment_date", paymentDate);
+        json.set("payment_date", paymentDate.value());
     }
     
     json.set("created_at", createdAt);

@@ -385,6 +385,122 @@ WarehouseCellServiceResult WarehouseCellService::unblockCell(long long cellId, l
     return result;
 }
 
+WarehouseCellServiceResult WarehouseCellService::clearCell(long long cellId, long long clearedBy)
+{
+    WarehouseCellServiceResult result;
+    
+    try
+    {
+        auto currentCell = cellRepository->findById(cellId);
+        if (!currentCell)
+        {
+            result.success = false;
+            result.message = "Warehouse cell not found with ID: " + std::to_string(cellId);
+            return result;
+        }
+        
+        std::string oldValues = warehouseCellToJsonString(*currentCell);
+        
+        bool clearSuccess = cellRepository->clearCell(cellId);
+        
+        if (clearSuccess)
+        {
+            result.success = true;
+            result.cellId = cellId;
+            result.message = "Warehouse cell cleared successfully";
+            
+            result.cell = cellRepository->findById(cellId);
+            
+            database::models::AuditLog auditLog;
+            auditLog.tableName = "warehouse_cells";
+            auditLog.recordId = cellId;
+            auditLog.action = database::models::AuditAction::UPDATE;
+            auditLog.oldValues = oldValues;
+            auditLog.newValues = warehouseCellToJsonString(*result.cell);
+            auditLog.changedBy = clearedBy;
+            auditLog.description = "Warehouse cell cleared of all batches";
+            
+            auditRepository->create(auditLog);
+            
+            result.data.set("previousOccupancy", currentCell->currentOccupancy);
+            result.data.set("newOccupancy", 0.0);
+            result.data.set("status", "empty");
+        }
+        else
+        {
+            result.success = false;
+            result.message = "Failed to clear warehouse cell";
+        }
+    }
+    catch (const std::exception& e)
+    {
+        result.success = false;
+        result.message = "Error clearing warehouse cell: " + std::string(e.what());
+    }
+    
+    return result;
+}
+
+WarehouseCellServiceResult WarehouseCellService::deleteCell(long long cellId, long long deletedBy)
+{
+    WarehouseCellServiceResult result;
+    
+    try
+    {
+        auto currentCell = cellRepository->findById(cellId);
+        if (!currentCell)
+        {
+            result.success = false;
+            result.message = "Warehouse cell not found with ID: " + std::to_string(cellId);
+            return result;
+        }
+        
+        std::string oldValues = warehouseCellToJsonString(*currentCell);
+        
+        if (currentCell->currentOccupancy > 0)
+        {
+            result.success = false;
+            result.message = "Cannot delete non-empty cell. Clear it first or use block operation.";
+            result.data.set("currentOccupancy", currentCell->currentOccupancy);
+            return result;
+        }
+        
+        bool deleteSuccess = cellRepository->remove(cellId);
+        
+        if (deleteSuccess)
+        {
+            result.success = true;
+            result.cellId = cellId;
+            result.message = "Warehouse cell deleted successfully";
+            
+            database::models::AuditLog auditLog;
+            auditLog.tableName = "warehouse_cells";
+            auditLog.recordId = cellId;
+            auditLog.action = database::models::AuditAction::DELETE;
+            auditLog.oldValues = oldValues;
+            auditLog.changedBy = deletedBy;
+            auditLog.description = "Warehouse cell deleted";
+            
+            auditRepository->create(auditLog);
+            
+            result.data.set("cellCode", currentCell->cellCode);
+            result.data.set("zone", currentCell->zone);
+        }
+        else
+        {
+            result.success = false;
+            result.message = "Failed to delete warehouse cell";
+        }
+    }
+    catch (const std::exception& e)
+    {
+        result.success = false;
+        result.message = "Error deleting warehouse cell: " + std::string(e.what());
+    }
+    
+    return result;
+}
+
 Poco::JSON::Array WarehouseCellService::getAvailableCells(double requiredVolume, double requiredWeight)
 {
     Poco::JSON::Array result;
@@ -506,11 +622,20 @@ Poco::JSON::Array WarehouseCellService::getCellBatches(long long cellId)
             batchObj.set("quantityReceived", batch->quantityReceived);
             batchObj.set("quantityAvailable", batch->quantityAvailable);
             batchObj.set("unitCost", batch->unitCost);
-            batchObj.set("manufactureDate", batch->manufactureDate);
-            batchObj.set("expirationDate", batch->expirationDate);
-            batchObj.set("arrivalDate", batch->arrivalDate);
+
+            if (!batch->manufactureDate.isNull())
+                batchObj.set("manufactureDate", batch->manufactureDate.value());
+
+            if (!batch->expirationDate.isNull())
+                batchObj.set("expirationDate", batch->expirationDate.value());
+
+            if (!batch->arrivalDate.isNull())
+                batchObj.set("arrivalDate", batch->arrivalDate.value());
+
             batchObj.set("qualityStatus", database::models::ProductBatch::qualityStatusToString(batch->qualityStatus));
-            batchObj.set("invoiceNumber", batch->invoiceNumber);
+
+            if (!batch->invoiceNumber.isNull())
+                batchObj.set("invoiceNumber", batch->invoiceNumber.value());
             
             double batchValue = batch->quantityAvailable * batch->unitCost;
             batchObj.set("totalValue", batchValue);

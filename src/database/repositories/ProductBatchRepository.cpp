@@ -208,7 +208,7 @@ bool ProductBatchRepository::update(long long id, const models::ProductBatch& pr
         update << "UPDATE " << TABLE_NAME << " SET "
                   "batch_number = $1, product_id = $2, supplier_id = $3, "
                   "quantity_received = $4, quantity_available = $5, unit_cost = $6, "
-                  "arrival_date = $7, storage_cell_id = $8, quality_status = $9::quality_status, "
+                  "arrival_date = $7, storage_cell_id = $8, quality_status = $9, "
                   "invoice_number = $10 WHERE id = $11",
             use(productBatchCopy.batchNumber),
             use(productBatchCopy.productId),
@@ -253,7 +253,7 @@ bool ProductBatchRepository::remove(long long id)
         int orderItemCount = 0;
         if (rs.rowCount() > 0)
         {
-            orderItemCount = rs.value(0, 0).convert<int>();
+            orderItemCount = rs.value(0) ? 0 : rs.value(0).convert<int>();
         }
         
         if (orderItemCount > 0)
@@ -295,7 +295,7 @@ int ProductBatchRepository::count()
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0) ? 0 : rs.value(0).convert<int>();;
         }
         
         return 0;
@@ -629,7 +629,7 @@ std::vector<std::unique_ptr<models::ProductBatch>> ProductBatchRepository::findE
                   "LEFT JOIN warehouse_cells wc ON wc.id = pb.storage_cell_id "
                   "WHERE pb.expiration_date IS NOT NULL "
                   "AND pb.expiration_date >= CURRENT_DATE "
-                  "AND pb.expiration_date <= CURRENT_DATE + $1 "
+                  "AND pb.expiration_date <= CURRENT_DATE + CAST($1 AS INTEGER) "
                   "AND pb.quantity_available > 0 "
                   "AND pb.quality_status = 'approved'::quality_status "
                   "ORDER BY pb.expiration_date ASC",
@@ -702,13 +702,9 @@ std::vector<std::unique_ptr<models::ProductBatch>> ProductBatchRepository::findA
     
     try
     {
-        long long productIdCopy = productId;
-        int quantityCopy = quantity;
+        Poco::Int64 productIdCopy = productId;
+        Poco::Int64 quantityCopy = quantity;
 
-        std::cout << "Connection is connected: " << connection->isConnected() << std::endl;
-        std::cout << "AutoCommit: " << connection->getAutoCommit() << std::endl;
-        std::cout << "Transaction active: " << connection->isTransactionActive() << std::endl;
-        
         Statement select(connection->getSession());
         select << "SELECT pb.id, pb.batch_number, pb.product_id, pb.supplier_id, "
                   "pb.quantity_received, pb.quantity_available, pb.unit_cost, "
@@ -1013,7 +1009,7 @@ int ProductBatchRepository::countBySupplier(long long supplierId)
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0) ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -1039,7 +1035,7 @@ int ProductBatchRepository::countByQualityStatus(const std::string& qualityStatu
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0) ? 0 : rs.value(0).convert<int>();;
         }
         
         return 0;
@@ -1070,7 +1066,7 @@ int ProductBatchRepository::countExpiringBatches(int daysThreshold)
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0) ? 0 : rs.value(0).convert<int>();;
         }
         
         return 0;
@@ -1097,7 +1093,7 @@ int ProductBatchRepository::countExpiredBatches()
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0) ? 0 : rs.value(0).convert<int>();;
         }
         
         return 0;
@@ -1122,7 +1118,7 @@ double ProductBatchRepository::getTotalBatchValue()
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0) ? 0.0 : rs.value(0).convert<double>();;
         }
         
         return 0.0;
@@ -1149,7 +1145,7 @@ double ProductBatchRepository::getTotalBatchValueByProduct(long long productId)
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0) ? 0.0 : rs.value(0).convert<double>();
         }
         
         return 0.0;
@@ -1176,7 +1172,7 @@ double ProductBatchRepository::getTotalBatchValueBySupplier(long long supplierId
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0) ? 0.0 : rs.value(0).convert<double>();
         }
         
         return 0.0;
@@ -1203,7 +1199,7 @@ int ProductBatchRepository::getTotalAvailableQuantity(long long productId)
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0) ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -1230,7 +1226,7 @@ double ProductBatchRepository::getAverageUnitCost(long long productId)
         RecordSet rs(select);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<double>();
+            return rs.value(0) ? 0.0 : rs.value(0).convert<double>();
         }
         
         return 0.0;
@@ -1256,7 +1252,7 @@ bool ProductBatchRepository::batchNumberExists(const std::string& batchNumber)
         RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            int count = rs.value(0, 0).convert<int>();
+            int count = rs.value(0) ? 0 : rs.value(0).convert<int>();
             return count > 0;
         }
         
@@ -1294,18 +1290,20 @@ Poco::JSON::Array ProductBatchRepository::getBatchStatistics()
         
         if (rs.rowCount() > 0)
         {
+            Poco::Data::Row row = rs.row(0);
             Poco::JSON::Object stat;
-            stat.set("total_batches", rs.value("total_batches").convert<int>());
-            stat.set("total_received", rs.value("total_received").convert<int>());
-            stat.set("total_available", rs.value("total_available").convert<int>());
-            stat.set("total_value", rs.value("total_value").convert<double>());
-            stat.set("avg_unit_cost", rs.value("avg_unit_cost").convert<double>());
-            stat.set("approved_batches", rs.value("approved_batches").convert<int>());
-            stat.set("pending_batches", rs.value("pending_batches").convert<int>());
-            stat.set("quarantine_batches", rs.value("quarantine_batches").convert<int>());
-            stat.set("rejected_batches", rs.value("rejected_batches").convert<int>());
-            stat.set("expired_batches", rs.value("expired_batches").convert<int>());
-            
+
+            stat.set("total_batches", row["total_batches"].isEmpty() ? 0 : row["total_batches"].convert<int>());
+            stat.set("total_received", row["total_received"].isEmpty() ? 0 : row["total_received"].convert<int>());
+            stat.set("total_available", row["total_available"].isEmpty() ? 0 : row["total_available"].convert<int>());
+            stat.set("total_value", row["total_value"].isEmpty() ? 0.0 : row["total_value"].convert<double>());
+            stat.set("avg_unit_cost", row["avg_unit_cost"].isEmpty() ? 0.0 : row["avg_unit_cost"].convert<double>());
+            stat.set("approved_batches", row["approved_batches"].isEmpty() ? 0 : row["approved_batches"].convert<int>());
+            stat.set("pending_batches", row["pending_batches"].isEmpty() ? 0 : row["pending_batches"].convert<int>());
+            stat.set("quarantine_batches", row["quarantine_batches"].isEmpty() ? 0 : row["quarantine_batches"].convert<int>());
+            stat.set("rejected_batches", row["rejected_batches"].isEmpty() ? 0 : row["rejected_batches"].convert<int>());
+            stat.set("expired_batches", row["expired_batches"].isEmpty() ? 0 : row["expired_batches"].convert<int>());
+
             result.add(stat);
         }
     }
@@ -1347,12 +1345,14 @@ Poco::JSON::Array ProductBatchRepository::getExpirationReport()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object stat;
-            stat.set("expiration_category", rs.value("expiration_category").convert<std::string>());
-            stat.set("batch_count", rs.value("batch_count").convert<int>());
-            stat.set("total_quantity", rs.value("total_quantity").convert<int>());
-            stat.set("total_value", rs.value("total_value").convert<double>());
-            
+
+            stat.set("expiration_category", row["expiration_category"].isEmpty() ? "" : row["expiration_category"].convert<std::string>());
+            stat.set("batch_count", row["batch_count"].isEmpty() ? 0 : row["batch_count"].convert<int>());
+            stat.set("total_quantity", row["total_quantity"].isEmpty() ? 0 : row["total_quantity"].convert<int>());
+            stat.set("total_value", row["total_value"].isEmpty() ? 0.0 : row["total_value"].convert<double>());
+
             result.add(stat);
         }
     }
@@ -1387,14 +1387,16 @@ Poco::JSON::Array ProductBatchRepository::getQualityStatusReport()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object stat;
-            stat.set("quality_status", rs.value("quality_status").convert<std::string>());
-            stat.set("batch_count", rs.value("batch_count").convert<int>());
-            stat.set("total_received", rs.value("total_received").convert<int>());
-            stat.set("total_available", rs.value("total_available").convert<int>());
-            stat.set("total_value", rs.value("total_value").convert<double>());
-            stat.set("avg_unit_cost", rs.value("avg_unit_cost").convert<double>());
-            
+
+            stat.set("quality_status", row["quality_status"].isEmpty() ? "" : row["quality_status"].convert<std::string>());
+            stat.set("batch_count", row["batch_count"].isEmpty() ? 0 : row["batch_count"].convert<int>());
+            stat.set("total_received", row["total_received"].isEmpty() ? 0 : row["total_received"].convert<int>());
+            stat.set("total_available", row["total_available"].isEmpty() ? 0 : row["total_available"].convert<int>());
+            stat.set("total_value", row["total_value"].isEmpty() ? 0.0 : row["total_value"].convert<double>());
+            stat.set("avg_unit_cost", row["avg_unit_cost"].isEmpty() ? 0.0 : row["avg_unit_cost"].convert<double>());
+
             result.add(stat);
         }
     }
@@ -1435,16 +1437,18 @@ Poco::JSON::Array ProductBatchRepository::getSupplierBatchReport(long long suppl
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object stat;
-            stat.set("product_name", rs.value("product_name").convert<std::string>());
-            stat.set("sku", rs.value("sku").convert<std::string>());
-            stat.set("batch_count", rs.value("batch_count").convert<int>());
-            stat.set("total_received", rs.value("total_received").convert<int>());
-            stat.set("total_available", rs.value("total_available").convert<int>());
-            stat.set("total_value", rs.value("total_value").convert<double>());
-            stat.set("avg_unit_cost", rs.value("avg_unit_cost").convert<double>());
-            stat.set("earliest_expiration", rs.value("earliest_expiration").convert<std::string>());
-            
+
+            stat.set("product_name", row["product_name"].isEmpty() ? "" : row["product_name"].convert<std::string>());
+            stat.set("sku", row["sku"].isEmpty() ? "" : row["sku"].convert<std::string>());
+            stat.set("batch_count", row["batch_count"].isEmpty() ? 0 : row["batch_count"].convert<int>());
+            stat.set("total_received", row["total_received"].isEmpty() ? 0 : row["total_received"].convert<int>());
+            stat.set("total_available", row["total_available"].isEmpty() ? 0 : row["total_available"].convert<int>());
+            stat.set("total_value", row["total_value"].isEmpty() ? 0.0 : row["total_value"].convert<double>());
+            stat.set("avg_unit_cost", row["avg_unit_cost"].isEmpty() ? 0.0 : row["avg_unit_cost"].convert<double>());
+            stat.set("earliest_expiration", row["earliest_expiration"].isEmpty() ? "" : row["earliest_expiration"].convert<std::string>());
+
             result.add(stat);
         }
     }
@@ -1471,9 +1475,10 @@ std::vector<std::pair<long long, std::string>> ProductBatchRepository::getBatchN
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             result.emplace_back(
-                rs.value("id", 0).convert<long long>(),
-                rs.value("batch_number").convert<std::string>()
+                row["id"].isEmpty() ? 0LL : row["id"].convert<Poco::Int64>(),
+                row["batch_number"].isEmpty() ? "" : row["batch_number"].convert<std::string>()
             );
         }
     }
@@ -1559,8 +1564,11 @@ std::map<long long, int> ProductBatchRepository::getProductStockSummary()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            long long productId = rs.value("product_id", 0).convert<long long>();
-            int totalStock = rs.value("total_stock", 0).convert<int>();
+            Poco::Data::Row row = rs.row(i);
+
+            Poco::Int64 productId = row["product_id"].isEmpty() ? 0 : row["product_id"].convert<Poco::Int64>();
+            int totalStock = row["total_stock"].isEmpty() ? 0 : row["total_stock"].convert<int>();
+
             result[productId] = totalStock;
         }
     }
@@ -1575,55 +1583,36 @@ std::map<long long, int> ProductBatchRepository::getProductStockSummary()
 models::ProductBatch ProductBatchRepository::mapRowToProductBatch(Poco::Data::Row& row) const
 {
     models::ProductBatch batch;
-    batch.id = row.get(0).convert<long long>();
-    batch.batchNumber = row.get(1).convert<std::string>();
-    batch.productId = row.get(2).convert<long long>();
-    batch.supplierId = row.get(3).convert<long long>();
-    batch.quantityReceived = row.get(4).convert<int>();
-    batch.quantityAvailable = row.get(5).convert<int>();
-    batch.unitCost = row.get(6).convert<double>();
-    
-    if (!row.get(7).isEmpty())
-    {
-        batch.manufactureDate = row.get(7).convert<std::string>();
-    }
-    
-    if (!row.get(8).isEmpty())
-    {
-        batch.expirationDate = row.get(8).convert<std::string>();
-    }
-    
-    batch.arrivalDate = row.get(9).convert<std::string>();
-    batch.storageCellId = row.get(10).convert<long long>();
-    
-    std::string qualityStatusStr = row.get(11).convert<std::string>();
+
+    batch.id = row["id"].convert<Poco::Int64>();
+    batch.batchNumber = row["batch_number"].convert<std::string>();
+    batch.productId = row["product_id"].convert<Poco::Int64>();
+    batch.supplierId = row["supplier_id"].convert<Poco::Int64>();
+    batch.quantityReceived = row["quantity_received"].convert<int>();
+    batch.quantityAvailable = row["quantity_available"].convert<int>();
+    batch.unitCost = row["unit_cost"].convert<double>();
+    batch.storageCellId = row["storage_cell_id"].convert<Poco::Int64>();
+
+    std::string qualityStatusStr = row["quality_status"].convert<std::string>();
     batch.qualityStatus = models::ProductBatch::stringToQualityStatus(qualityStatusStr);
-    
-    if (!row.get(12).isEmpty())
-    {
-        batch.invoiceNumber = row.get(12).convert<std::string>();
-    }
-    
-    if (!row.get(13).isEmpty())
-    {
-        batch.productName = row.get(13).convert<std::string>();
-    }
-    
-    if (!row.get(14).isEmpty())
-    {
-        batch.productSku = row.get(14).convert<std::string>();
-    }
-    
-    if (!row.get(15).isEmpty())
-    {
-        batch.supplierName = row.get(15).convert<std::string>();
-    }
-    
-    if (!row.get(16).isEmpty())
-    {
-        batch.storageCellCode = row.get(16).convert<std::string>();
-    }
-    
+
+    if (!row["manufacture_date"].isEmpty())
+        batch.manufactureDate = row["manufacture_date"].convert<std::string>();
+
+    if (!row["expiration_date"].isEmpty())
+        batch.expirationDate = row["expiration_date"].convert<std::string>();
+
+    if (!row["arrival_date"].isEmpty())
+        batch.arrivalDate = row["arrival_date"].convert<std::string>();
+
+    if (!row["invoice_number"].isEmpty())
+        batch.invoiceNumber = row["invoice_number"].convert<std::string>();
+
+    batch.productName = row["product_name"].isEmpty() ? "" : row["product_name"].convert<std::string>();
+    batch.productSku = row["product_sku"].isEmpty() ? "" : row["product_sku"].convert<std::string>();
+    batch.supplierName = row["supplier_name"].isEmpty() ? "" : row["supplier_name"].convert<std::string>();
+    batch.storageCellCode = row["storage_cell_code"].isEmpty() ? "" : row["storage_cell_code"].convert<std::string>();
+
     return batch;
 }
 
@@ -1644,8 +1633,17 @@ void ProductBatchRepository::enrichProductBatchWithDetails(models::ProductBatch&
             RecordSet rs(select);
             if (rs.rowCount() > 0)
             {
-                batch.productName = rs.value("name").convert<std::string>();
-                batch.productSku = rs.value("sku").convert<std::string>();
+                Poco::Data::Row row = rs.row(0);
+
+                if (!row["name"].isEmpty())
+                    batch.productName = row["name"].convert<std::string>();
+                else
+                    batch.productName.clear();
+
+                if (!row["sku"].isEmpty())
+                    batch.productSku = row["sku"].convert<std::string>();
+                else
+                    batch.productSku.clear();
             }
         }
         
@@ -1660,7 +1658,7 @@ void ProductBatchRepository::enrichProductBatchWithDetails(models::ProductBatch&
             RecordSet rs(select);
             if (rs.rowCount() > 0)
             {
-                batch.supplierName = rs.value("name").convert<std::string>();
+                batch.supplierName = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
             }
         }
         
@@ -1675,7 +1673,7 @@ void ProductBatchRepository::enrichProductBatchWithDetails(models::ProductBatch&
             RecordSet rs(select);
             if (rs.rowCount() > 0)
             {
-                batch.storageCellCode = rs.value("cell_code").convert<std::string>();
+                batch.storageCellCode = rs.value("cell_code").isEmpty() ? "" : rs.value("cell_code").convert<std::string>();
             }
         }
     }

@@ -1,4 +1,3 @@
-// warehouse_backend/src/services/ShipmentService.hpp
 #pragma once
 
 #include "../database/repositories/ShipmentRepository.hpp"

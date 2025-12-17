@@ -1,9 +1,14 @@
 add_executable(warehouse_backend
-    main/test_main.cpp
+    main/main.cpp
+    main/ApplicationServer.cpp
+    main/RequestHandlerFactory.cpp
 
     # config
     config/ApplicationConfig.cpp
     config/ConfigManager.cpp
+
+    # Маршрутизация
+    routes/ApiRoutes.cpp
 
     # utils
     utils/DateUtils.cpp
@@ -51,8 +56,24 @@ add_executable(warehouse_backend
     services/ShipmentService.cpp
     services/SupplierService.cpp
     services/WarehouseCellService.cpp
-    services/BatchImportService.cpp
     services/ReportService.cpp
+    services/ProductBatchService.cpp
+    services/OrderPaymentService.cpp
+
+    #controllers
+    controllers/BaseController.cpp
+    controllers/AuthController.cpp
+    controllers/UserController.cpp
+    controllers/ProductController.cpp
+    controllers/OrderController.cpp
+    controllers/CategoryController.cpp
+    controllers/SupplierController.cpp
+    controllers/WarehouseCellController.cpp
+    controllers/ProductBatchController.cpp
+    controllers/InventoryMovementController.cpp
+    controllers/ShipmentController.cpp
+    controllers/OrderPaymentController.cpp
+    controllers/BatchImportController.cpp
 )
 
 target_include_directories(warehouse_backend
@@ -65,6 +86,8 @@ target_include_directories(warehouse_backend
         ${CMAKE_CURRENT_SOURCE_DIR}/database/repositories
         ${CMAKE_CURRENT_SOURCE_DIR}/utils
         ${CMAKE_CURRENT_SOURCE_DIR}/services
+        ${CMAKE_CURRENT_SOURCE_DIR}/controllers
+        ${CMAKE_CURRENT_SOURCE_DIR}/routes
         ${CMAKE_CURRENT_BINARY_DIR}/../include
         ${CMAKE_BINARY_DIR}
         ${CMAKE_BINARY_DIR}/config

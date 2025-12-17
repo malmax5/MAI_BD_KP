@@ -62,7 +62,6 @@ Poco::JSON::Array::Ptr JsonUtils::stringToArray(const std::string& jsonStr)
     return result.extract<Poco::JSON::Array::Ptr>();
 }
 
-// Специализации шаблонного метода getValue
 template<>
 std::string JsonUtils::getValue<std::string>(const Poco::JSON::Object& obj, 
                                                const std::string& key, 
@@ -342,7 +341,7 @@ std::map<std::string, std::string> JsonUtils::jsonToMap(const Poco::JSON::Object
         }
         catch (...)
         {
-            // Пропускаем не-строковые значения
+            
         }
     }
 

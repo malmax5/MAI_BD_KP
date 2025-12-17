@@ -28,45 +28,37 @@ ProductBatch::ProductBatch()
 ProductBatch::ProductBatch(const Poco::JSON::Object& json)
 {
     batchNumber = JsonUtils::getString(json, "batch_number", "");
-    productId = JsonUtils::getInt(json, "product_id", 0);
-    supplierId = JsonUtils::getInt(json, "supplier_id", 0);
+    productId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "product_id", 0));
+    supplierId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "supplier_id", 0));
     quantityReceived = JsonUtils::getInt(json, "quantity_received", 0);
     quantityAvailable = JsonUtils::getInt(json, "quantity_available", 0);
     unitCost = JsonUtils::getDouble(json, "unit_cost", 0.0);
-    manufactureDate = JsonUtils::getString(json, "manufacture_date", "");
-    expirationDate = JsonUtils::getString(json, "expiration_date", "");
-    arrivalDate = JsonUtils::getString(json, "arrival_date", "");
-    storageCellId = JsonUtils::getInt(json, "storage_cell_id", 0);
-    
+    storageCellId = static_cast<Poco::Int64>(JsonUtils::getInt(json, "storage_cell_id", 0));
+
     std::string statusStr = JsonUtils::getString(json, "quality_status", "pending");
     qualityStatus = stringToQualityStatus(statusStr);
-    
-    invoiceNumber = JsonUtils::getString(json, "invoice_number", "");
-    
-    if (json.has("id"))
-    {
-        id = JsonUtils::getInt(json, "id", 0);
-    }
-    
-    if (json.has("product_name"))
-    {
-        productName = JsonUtils::getString(json, "product_name", "");
-    }
-    
-    if (json.has("product_sku"))
-    {
-        productSku = JsonUtils::getString(json, "product_sku", "");
-    }
-    
-    if (json.has("supplier_name"))
-    {
-        supplierName = JsonUtils::getString(json, "supplier_name", "");
-    }
-    
-    if (json.has("storage_cell_code"))
-    {
-        storageCellCode = JsonUtils::getString(json, "storage_cell_code", "");
-    }
+
+    productName = JsonUtils::getString(json, "product_name", "");
+    productSku = JsonUtils::getString(json, "product_sku", "");
+    supplierName = JsonUtils::getString(json, "supplier_name", "");
+    storageCellCode = JsonUtils::getString(json, "storage_cell_code", "");
+
+    if (json.has("manufacture_date") && !json.isNull("manufacture_date"))
+        manufactureDate = JsonUtils::getString(json, "manufacture_date", "");
+
+    if (json.has("expiration_date") && !json.isNull("expiration_date"))
+        expirationDate = JsonUtils::getString(json, "expiration_date", "");
+
+    if (json.has("arrival_date") && !json.isNull("arrival_date"))
+        arrivalDate = JsonUtils::getString(json, "arrival_date", "");
+
+    if (json.has("invoice_number") && !json.isNull("invoice_number"))
+        invoiceNumber = JsonUtils::getString(json, "invoice_number", "");
+
+    if (json.has("id") && !json.isNull("id"))
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    else
+        id = 0;
 }
 
 Poco::JSON::Object ProductBatch::toJson() const
@@ -87,24 +79,27 @@ Poco::JSON::Object ProductBatch::toJson() const
     
     if (!manufactureDate.isNull())
     {
-        json.set("manufacture_date", manufactureDate);
+        json.set("manufacture_date", manufactureDate.value());
     }
     
     if (!expirationDate.isNull())
     {
-        json.set("expiration_date", expirationDate);
+        json.set("expiration_date", expirationDate.value());
     }
     
-    json.set("arrival_date", arrivalDate);
+    if (!arrivalDate.isNull())
+    {
+        json.set("arrival_date", arrivalDate.value());
+    }
+
     json.set("storage_cell_id", storageCellId);
     json.set("quality_status", qualityStatusToString(qualityStatus));
     
     if (!invoiceNumber.isNull())
     {
-        json.set("invoice_number", invoiceNumber);
+        json.set("invoice_number", invoiceNumber.value());
     }
     
-    // Дополнительные поля
     if (!productName.empty())
     {
         json.set("product_name", productName);
@@ -165,12 +160,12 @@ bool ProductBatch::validate() const
         return false;
     }
     
-    if (!manufactureDate.isNull() && !Validator::isValidDate(manufactureDate.value()))
+    if (manufactureDate.isNull() || !Validator::isValidDate(manufactureDate.value()))
     {
         return false;
     }
     
-    if (!expirationDate.isNull() && !Validator::isValidDate(expirationDate.value()))
+    if (expirationDate.isNull() || !Validator::isValidDate(expirationDate.value()))
     {
         return false;
     }

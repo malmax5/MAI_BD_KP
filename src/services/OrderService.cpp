@@ -1171,20 +1171,26 @@ Poco::JSON::Object OrderService::getOrderStatistics()
     try
     {
         auto statistics = orderRepository->getOrderStatistics();
+        Poco::JSON::Object::Ptr dataPtr = new Poco::JSON::Object();
+
         if (statistics.size() > 0)
         {
-            stats = *statistics.getObject(0);
-        
+
+            dataPtr->set("statistics_by_status", statistics);
+
             int totalOrders = orderRepository->count();
             double totalRevenue = orderRepository->getTotalRevenue();
             double avgOrderValue = orderRepository->getAverageOrderValue();
 
-            stats.set("totalOrders", totalOrders);
-            stats.set("totalRevenue", totalRevenue);
-            stats.set("averageOrderValue", avgOrderValue);
-            stats.set("calculatedAt", utils::DateUtils::formatDateTime(utils::DateUtils::now()));
+            dataPtr->set("totalOrders", totalOrders);
+            dataPtr->set("totalRevenue", totalRevenue);
+            dataPtr->set("averageOrderValue", avgOrderValue);
+            dataPtr->set("calculatedAt", utils::DateUtils::formatDateTime(utils::DateUtils::now()));
+
+            statistics.add(dataPtr);
         }
-        
+
+        stats = *dataPtr;
     }
     catch (const std::exception& e)
     {

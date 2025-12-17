@@ -1,4 +1,3 @@
-// warehouse_backend/src/services/InventoryService.cpp
 #include "InventoryService.hpp"
 #include "../database/ConnectionPool.hpp"
 #include <Poco/JSON/Parser.h>
@@ -124,7 +123,7 @@ InventoryMovementResult InventoryService::receiveProduct(long long productId,
         if (cellId == 0)
         {
             auto bestCell = findBestStorageCell(product->weight * quantity, 
-                                              product->weight * quantity);
+                                                product->weight * quantity);
             if (bestCell.has("cellId"))
             {
                 cellId = bestCell.get("cellId");
@@ -146,9 +145,15 @@ InventoryMovementResult InventoryService::receiveProduct(long long productId,
         newBatch.quantityReceived = quantity;
         newBatch.quantityAvailable = quantity;
         newBatch.unitCost = unitCost;
-        newBatch.expirationDate = expirationDate;
+
+        if (!expirationDate.empty())
+        {
+            newBatch.expirationDate = expirationDate;
+        }
+
         newBatch.storageCellId = cellId;
         newBatch.qualityStatus = database::models::QualityStatus::PENDING;
+
         newBatch.arrivalDate = utils::DateUtils::formatDateTime(utils::DateUtils::now());
         
         long long batchId = batchRepository->create(newBatch);
@@ -165,7 +170,12 @@ InventoryMovementResult InventoryService::receiveProduct(long long productId,
         movement.movementType = database::models::MovementType::RECEIPT;
         movement.productId = productId;
         movement.batchId = batchId;
-        movement.toCellId = cellId;
+        
+        if (cellId > 0)
+        {
+            movement.toCellId = cellId;
+        }
+
         movement.quantity = quantity;
         movement.performedBy = receivedBy;
         movement.status = database::models::MovementStatus::COMPLETED;
@@ -319,13 +329,26 @@ InventoryMovementResult InventoryService::transferProduct(long long batchId,
         movement.movementType = database::models::MovementType::TRANSFER;
         movement.productId = batch->productId;
         movement.batchId = batchId;
-        movement.fromCellId = fromCellId;
-        movement.toCellId = toCellId;
         movement.quantity = quantity;
         movement.performedBy = performedBy;
         movement.status = database::models::MovementStatus::COMPLETED;
-        movement.reason = reason.empty() ? "Product transfer" : reason;
         movement.movementDate = utils::DateUtils::formatDateTime(utils::DateUtils::now());
+
+        if (fromCellId > 0)
+        {
+            movement.fromCellId = fromCellId;
+        }
+
+        if (toCellId > 0)
+        {
+            movement.toCellId = toCellId;
+        }
+
+        std::string finalReason = reason.empty() ? "Product transfer" : reason;
+        if (!finalReason.empty())
+        {
+            movement.reason = finalReason;
+        }
         
         long long movementId = movementRepository->create(movement);
         
@@ -472,16 +495,27 @@ InventoryMovementResult InventoryService::adjustInventory(long long productId,
         }
         
         database::models::InventoryMovement movement;
+
         movement.movementType = database::models::MovementType::ADJUSTMENT;
         movement.productId = productId;
         movement.batchId = batchId;
-        movement.fromCellId = batch->storageCellId;
-        movement.toCellId = batch->storageCellId;
         movement.quantity = std::abs(quantityAdjustment);
         movement.performedBy = performedBy;
         movement.status = database::models::MovementStatus::COMPLETED;
-        movement.reason = reason.empty() ? "Inventory adjustment" : reason;
         movement.movementDate = utils::DateUtils::formatDateTime(utils::DateUtils::now());
+
+        Poco::Int64 cellId = batch->storageCellId;
+        if (cellId > 0)
+        {
+            movement.fromCellId = cellId;
+            movement.toCellId = cellId;
+        }
+
+        std::string finalReason = reason.empty() ? "Inventory adjustment" : reason;
+        if (!finalReason.empty())
+        {
+            movement.reason = finalReason;
+        }
         
         long long movementId = movementRepository->create(movement);
         
@@ -641,6 +675,72 @@ StockCheckResult InventoryService::checkBatchAvailability(long long batchId, int
     {
         result.available = false;
         result.message = "Error checking batch availability: " + std::string(e.what());
+    }
+    
+    return result;
+}
+
+Poco::JSON::Array InventoryService::getMovements(int page, int pageSize, 
+                                                const std::map<std::string, std::string>& filters)
+{
+    Poco::JSON::Array result;
+    
+    try
+    {
+        if (filters.find("productId") != filters.end())
+        {
+            long long productId = std::stoll(filters.at("productId"));
+            auto movements = movementRepository->findByProductId(productId);
+            for (const auto& movement : movements)
+            {
+                if (movement)
+                {
+                    result.add(movement->toJson());
+                }
+            }
+        }
+        else if (filters.find("batchId") != filters.end())
+        {
+            long long batchId = std::stoll(filters.at("batchId"));
+            auto movements = movementRepository->findByBatchId(batchId);
+            for (const auto& movement : movements)
+            {
+                if (movement)
+                {
+                    result.add(movement->toJson());
+                }
+            }
+        }
+        else if (filters.find("movementType") != filters.end())
+        {
+            std::string typeStr = filters.at("movementType");
+            auto movementType = database::models::InventoryMovement::stringToMovementType(typeStr);
+            auto movements = movementRepository->findByMovementType(movementType);
+            for (const auto& movement : movements)
+            {
+                if (movement)
+                {
+                    result.add(movement->toJson());
+                }
+            }
+        }
+        else
+        {
+            auto movements = movementRepository->findPaginated(page, pageSize);
+            for (const auto& movement : movements)
+            {
+                if (movement)
+                {
+                    result.add(movement->toJson());
+                }
+            }
+        }
+    }
+    catch (const std::exception& e)
+    {
+        Poco::JSON::Object error;
+        error.set("error", "Error getting movements: " + std::string(e.what()));
+        result.add(error);
     }
     
     return result;
@@ -923,27 +1023,29 @@ Poco::JSON::Array InventoryService::findExpiringProducts(int daysThreshold)
             item.set("batchId", static_cast<Poco::Int64>(batch->id));
             item.set("batchNumber", batch->batchNumber);
             item.set("productId", static_cast<Poco::Int64>(batch->productId));
-            
+
             auto product = productRepository->findById(batch->productId);
             if (product)
             {
                 item.set("productName", product->name);
                 item.set("sku", product->sku);
             }
-            
+
             item.set("quantityAvailable", batch->quantityAvailable);
             item.set("unitCost", batch->unitCost);
-            item.set("expirationDate", batch->expirationDate);
-            item.set("storageCellId", static_cast<Poco::Int64>(batch->storageCellId));
-            
+
             if (!batch->expirationDate.isNull())
             {
-                auto expirationDate = utils::DateUtils::parseDate(batch->expirationDate);
+                item.set("expirationDate", batch->expirationDate.value());
+
+                auto expirationDate = utils::DateUtils::parseDate(batch->expirationDate.value());
                 auto today = utils::DateUtils::now();
                 int daysUntilExpiration = utils::DateUtils::daysBetween(today, expirationDate);
                 item.set("daysUntilExpiration", daysUntilExpiration);
             }
-            
+        
+            item.set("storageCellId", static_cast<Poco::Int64>(batch->storageCellId));
+
             result.add(item);
         }
     }
@@ -1017,26 +1119,31 @@ Poco::JSON::Array InventoryService::findProductsNeedingQualityInspection()
             item.set("batchId", static_cast<Poco::Int64>(batch->id));
             item.set("batchNumber", batch->batchNumber);
             item.set("productId", static_cast<Poco::Int64>(batch->productId));
-            
+
             auto product = productRepository->findById(batch->productId);
             if (product)
             {
                 item.set("productName", product->name);
                 item.set("sku", product->sku);
             }
-            
+
             item.set("quantityAvailable", batch->quantityAvailable);
-            item.set("arrivalDate", batch->arrivalDate);
+
+            if (!batch->arrivalDate.isNull())
+            {
+                item.set("arrivalDate", batch->arrivalDate.value());
+            }
+
             item.set("qualityStatus", 
-                    database::models::ProductBatch::qualityStatusToString(batch->qualityStatus));
+                     database::models::ProductBatch::qualityStatusToString(batch->qualityStatus));
             item.set("storageCellId", static_cast<Poco::Int64>(batch->storageCellId));
-            
+
             auto cell = cellRepository->findById(batch->storageCellId);
             if (cell)
             {
                 item.set("cellCode", cell->cellCode);
             }
-            
+
             result.add(item);
         }
     }
@@ -1396,7 +1503,7 @@ Poco::JSON::Array InventoryService::getExpirationReport()
                     monthInfo.set("totalBatches", 0);
                     monthInfo.set("totalQuantity", 0);
                     monthInfo.set("totalValue", 0.0);
-                    monthInfo.set("batches", Poco::JSON::Array());
+                    monthInfo.set("batches", Poco::JSON::Array::Ptr(new Poco::JSON::Array()));
                     
                     monthMap[monthKey] = monthInfo;
                 }
@@ -1425,7 +1532,9 @@ Poco::JSON::Array InventoryService::getExpirationReport()
                 
                 batchInfo.set("quantity", batch->quantityAvailable);
                 batchInfo.set("value", batch->quantityAvailable * batch->unitCost);
-                batchInfo.set("expirationDate", batch->expirationDate);
+
+                if (!batch->expirationDate.isNull())
+                    batchInfo.set("expirationDate", batch->expirationDate.value());
                 
                 batchesArray->add(batchInfo);
             }
@@ -1467,7 +1576,7 @@ Poco::JSON::Array InventoryService::getQualityStatusReport()
                 statusInfo.set("totalBatches", 0);
                 statusInfo.set("totalQuantity", 0);
                 statusInfo.set("totalValue", 0.0);
-                statusInfo.set("batches", Poco::JSON::Array());
+                statusInfo.set("batches", Poco::JSON::Array::Ptr(new Poco::JSON::Array()));
                 
                 statusMap[status] = statusInfo;
             }
@@ -1496,7 +1605,9 @@ Poco::JSON::Array InventoryService::getQualityStatusReport()
             
             batchInfo.set("quantity", batch->quantityAvailable);
             batchInfo.set("value", batch->quantityAvailable * batch->unitCost);
-            batchInfo.set("arrivalDate", batch->arrivalDate);
+
+            if (!batch->arrivalDate.isNull())
+                batchInfo.set("arrivalDate", batch->arrivalDate.value());
             
             batchesArray->add(batchInfo);
         }

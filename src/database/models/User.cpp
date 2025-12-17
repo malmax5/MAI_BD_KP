@@ -58,14 +58,14 @@ Poco::JSON::Object User::toJson() const
     
     if (!lastLogin.isNull())
     {
-        json.set("last_login", lastLogin);
+        json.set("last_login", lastLogin.value());
     }
     
     json.set("is_active", isActive);
     
     if (!phoneNumber.isNull())
     {
-        json.set("phone_number", phoneNumber);
+        json.set("phone_number", phoneNumber.value());
     }
     
     return json;

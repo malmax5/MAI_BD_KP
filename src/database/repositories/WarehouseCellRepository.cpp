@@ -286,6 +286,40 @@ int WarehouseCellRepository::count()
     }
 }
 
+bool WarehouseCellRepository::clearCell(long long id)
+{
+    auto connection = acquireConnection();
+    
+    try
+    {
+        beginTransaction(*connection);
+        
+        Statement clearBatches(connection->getSession());
+        clearBatches << "DELETE FROM product_batches WHERE storage_cell_id = $1",
+            use(id),
+            now;
+        clearBatches.execute();
+        
+        Statement resetCell(connection->getSession());
+        resetCell << "UPDATE " << TABLE_NAME << " SET "
+                  "current_occupancy = 0, "
+                  "status = 'empty'::cell_status "
+                  "WHERE id = $1",
+            use(id),
+            now;
+        
+        int rowsAffected = resetCell.execute();
+        
+        commitTransaction(*connection);
+        return rowsAffected > 0;
+    }
+    catch (const Poco::Exception& e)
+    {
+        rollbackTransaction(*connection);
+        throw std::runtime_error("Database error in clearCell: " + e.displayText());
+    }
+}
+
 Poco::JSON::Array WarehouseCellRepository::findAllAsJson()
 {
     auto warehouseCells = findAll();

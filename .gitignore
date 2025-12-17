@@ -16,9 +16,11 @@ save.txt
 FilesInText.txt
 models.txt
 repositories.txt
+controllers.txt
 file.sh
 file_models.sh
 file_repositories.sh
+file_controllers.sh
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake

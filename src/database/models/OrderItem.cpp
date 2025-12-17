@@ -30,6 +30,7 @@ OrderItem::OrderItem()
 
 OrderItem::OrderItem(const Poco::JSON::Object& json)
 {
+    id = JsonUtils::getInt(json, "id", 0);
     orderId = JsonUtils::getInt(json, "order_id", 0);
     productId = JsonUtils::getInt(json, "product_id", 0);
     batchId = JsonUtils::getInt(json, "batch_id", 0);
@@ -37,7 +38,7 @@ OrderItem::OrderItem(const Poco::JSON::Object& json)
     quantityShipped = JsonUtils::getInt(json, "quantity_shipped", 0);
     unitPrice = JsonUtils::getDouble(json, "unit_price", 0.0);
     discountPercent = JsonUtils::getDouble(json, "discount_percent", 0.0);
-    
+
     if (json.has("line_total"))
     {
         lineTotal = JsonUtils::getDouble(json, "line_total", 0.0);
@@ -46,36 +47,39 @@ OrderItem::OrderItem(const Poco::JSON::Object& json)
     {
         calculateLineTotal();
     }
-    
+
     std::string statusStr = JsonUtils::getString(json, "picking_status", "not_started");
     pickingStatus = stringToPickingStatus(statusStr);
-    
-    pickedBy = JsonUtils::getInt(json, "picked_by", 0);
-    pickedAt = JsonUtils::getString(json, "picked_at", "");
-    
-    if (json.has("id"))
+
+    if (json.has("picked_by") && !json.isNull("picked_by"))
     {
-        id = JsonUtils::getInt(json, "id", 0);
+        pickedBy = JsonUtils::getInt(json, "picked_by", 0);
     }
-    
-    if (json.has("product_name"))
+    else
     {
-        productName = JsonUtils::getString(json, "product_name", "");
+        pickedBy.clear();
     }
-    
-    if (json.has("product_sku"))
+
+    if (json.has("picked_at") && !json.isNull("picked_at"))
     {
-        productSku = JsonUtils::getString(json, "product_sku", "");
+        pickedAt = JsonUtils::getString(json, "picked_at", "");
     }
-    
-    if (json.has("batch_number"))
+    else
     {
-        batchNumber = JsonUtils::getString(json, "batch_number", "");
+        pickedAt.clear();
     }
-    
-    if (json.has("picked_by_name"))
+
+    productName = JsonUtils::getString(json, "product_name", "");
+    productSku = JsonUtils::getString(json, "product_sku", "");
+    batchNumber = JsonUtils::getString(json, "batch_number", "");
+
+    if (json.has("picked_by_name") && !json.isNull("picked_by_name"))
     {
         pickedByName = JsonUtils::getString(json, "picked_by_name", "");
+    }
+    else
+    {
+        pickedByName.clear();
     }
 }
 
@@ -98,14 +102,14 @@ Poco::JSON::Object OrderItem::toJson() const
     json.set("line_total", lineTotal);
     json.set("picking_status", pickingStatusToString(pickingStatus));
     
-    if (pickedBy.value() > 0)
+    if (!pickedBy.isNull() && pickedBy.value() > 0)
     {
-        json.set("picked_by", pickedBy);
+        json.set("picked_by", pickedBy.value());
     }
     
     if (!pickedAt.isNull())
     {
-        json.set("picked_at", pickedAt);
+        json.set("picked_at", pickedAt.value());
     }
     
     if (!productName.empty())
@@ -125,7 +129,7 @@ Poco::JSON::Object OrderItem::toJson() const
     
     if (!pickedByName.isNull())
     {
-        json.set("picked_by_name", pickedByName);
+        json.set("picked_by_name", pickedByName.value());
     }
     
     json.set("discounted_price", getDiscountedPrice());

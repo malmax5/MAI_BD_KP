@@ -52,18 +52,8 @@ std::unique_ptr<models::OrderPayment> OrderPaymentRepository::findById(long long
         
         if (rs.rowCount() > 0)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(0);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             return payment;
         }
@@ -96,18 +86,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findA
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -147,18 +127,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findP
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -358,18 +328,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findB
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -408,18 +368,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::searc
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -453,18 +403,8 @@ std::unique_ptr<models::OrderPayment> OrderPaymentRepository::findByOrderId(long
         
         if (rs.rowCount() > 0)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(0);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             return payment;
         }
@@ -511,18 +451,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findB
         std::vector<std::unique_ptr<models::OrderPayment>> payments;
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = transactionId;
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -561,18 +491,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findB
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -611,18 +531,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findB
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = rs.value("payment_status").convert<std::string>();
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -681,18 +591,8 @@ std::vector<std::unique_ptr<models::OrderPayment>> OrderPaymentRepository::findO
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto payment = std::make_unique<models::OrderPayment>();
-            payment->id = rs.value("id", 0).convert<long long>();
-            payment->orderId = rs.value("order_id", 0).convert<long long>();
-            payment->paymentMethod = rs.value("payment_method").convert<std::string>();
-            payment->paymentStatus = "pending";
-            payment->amount = rs.value("amount", 0.0).convert<double>();
-            payment->transactionId = rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>();
-            payment->paymentDate = rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>();
-            payment->createdAt = rs.value("created_at").convert<std::string>();
-            payment->orderNumber = rs.value("order_number").convert<std::string>();
-            payment->customerName = rs.value("customer_name").convert<std::string>();
-            payment->orderTotal = rs.value("order_total", 0.0).convert<double>();
+            Poco::Data::Row row = rs.row(i);
+            auto payment = std::make_unique<models::OrderPayment>(mapRowToPayment(row));
             
             payments.push_back(std::move(payment));
         }
@@ -1139,15 +1039,18 @@ Poco::JSON::Array OrderPaymentRepository::getPaymentStatistics()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object stats;
-            stats.set("payment_method", rs.value("payment_method").convert<std::string>());
-            stats.set("payment_status", rs.value("payment_status").convert<std::string>());
-            stats.set("count", rs.value("count", 0).convert<int>());
-            stats.set("total_amount", rs.value("total_amount", 0.0).convert<double>());
-            stats.set("avg_amount", rs.value("avg_amount", 0.0).convert<double>());
-            stats.set("first_payment", rs.value("first_payment").convert<std::string>());
-            stats.set("last_payment", rs.value("last_payment").convert<std::string>());
-            
+
+            stats.set("payment_method", row["payment_method"].isEmpty() ? "" : row["payment_method"].convert<std::string>());
+            stats.set("payment_status", row["payment_status"].isEmpty() ? "" : row["payment_status"].convert<std::string>());
+            stats.set("first_payment", row["first_payment"].isEmpty() ? "" : row["first_payment"].convert<std::string>());
+            stats.set("last_payment", row["last_payment"].isEmpty() ? "" : row["last_payment"].convert<std::string>());
+
+            stats.set("count", row["count"].isEmpty() ? 0 : row["count"].convert<int>());
+            stats.set("total_amount", row["total_amount"].isEmpty() ? 0.0 : row["total_amount"].convert<double>());
+            stats.set("avg_amount", row["avg_amount"].isEmpty() ? 0.0 : row["avg_amount"].convert<double>());
+
             jsonArray.add(stats);
         }
     }
@@ -1191,15 +1094,31 @@ Poco::JSON::Array OrderPaymentRepository::getPaymentReport(const std::string& st
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object report;
-            report.set("payment_date", rs.value("payment_date").convert<std::string>());
-            report.set("payment_method", rs.value("payment_method").convert<std::string>());
-            report.set("total_payments", rs.value("total_payments", 0).convert<int>());
-            report.set("total_amount", rs.value("total_amount", 0.0).convert<double>());
-            report.set("paid_amount", rs.value("paid_amount", 0.0).convert<double>());
-            report.set("pending_amount", rs.value("pending_amount", 0.0).convert<double>());
-            report.set("failed_amount", rs.value("failed_amount", 0.0).convert<double>());
-            report.set("refunded_amount", rs.value("refunded_amount", 0.0).convert<double>());
+            report.set("payment_date", 
+                row["payment_date"].isEmpty() ? "" : row["payment_date"].convert<std::string>());
+
+            report.set("payment_method", 
+                row["payment_method"].isEmpty() ? "" : row["payment_method"].convert<std::string>());
+
+            report.set("total_payments", 
+                row["total_payments"].isEmpty() ? 0 : row["total_payments"].convert<int>());
+
+            report.set("total_amount", 
+                row["total_amount"].isEmpty() ? 0.0 : row["total_amount"].convert<double>());
+
+            report.set("paid_amount", 
+                row["paid_amount"].isEmpty() ? 0.0 : row["paid_amount"].convert<double>());
+
+            report.set("pending_amount", 
+                row["pending_amount"].isEmpty() ? 0.0 : row["pending_amount"].convert<double>());
+
+            report.set("failed_amount", 
+                row["failed_amount"].isEmpty() ? 0.0 : row["failed_amount"].convert<double>());
+
+            report.set("refunded_amount", 
+                row["refunded_amount"].isEmpty() ? 0.0 : row["refunded_amount"].convert<double>());
             
             jsonArray.add(report);
         }
@@ -1238,16 +1157,33 @@ Poco::JSON::Array OrderPaymentRepository::getPaymentMethodAnalysis()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object analysis;
-            analysis.set("payment_method", rs.value("payment_method").convert<std::string>());
-            analysis.set("total_transactions", rs.value("total_transactions", 0).convert<int>());
-            analysis.set("total_volume", rs.value("total_volume", 0.0).convert<double>());
-            analysis.set("avg_transaction_value", rs.value("avg_transaction_value", 0.0).convert<double>());
-            analysis.set("successful_transactions", rs.value("successful_transactions", 0).convert<int>());
-            analysis.set("failed_transactions", rs.value("failed_transactions", 0).convert<int>());
-            analysis.set("pending_transactions", rs.value("pending_transactions", 0).convert<int>());
-            analysis.set("success_rate", rs.value("success_rate", 0.0).convert<double>());
-            
+
+            analysis.set("payment_method", 
+                row["payment_method"].isEmpty() ? "" : row["payment_method"].convert<std::string>());
+
+            analysis.set("total_transactions", 
+                row["total_transactions"].isEmpty() ? 0 : row["total_transactions"].convert<int>());
+
+            analysis.set("total_volume", 
+                row["total_volume"].isEmpty() ? 0.0 : row["total_volume"].convert<double>());
+
+            analysis.set("avg_transaction_value", 
+                row["avg_transaction_value"].isEmpty() ? 0.0 : row["avg_transaction_value"].convert<double>());
+
+            analysis.set("successful_transactions", 
+                row["successful_transactions"].isEmpty() ? 0 : row["successful_transactions"].convert<int>());
+
+            analysis.set("failed_transactions", 
+                row["failed_transactions"].isEmpty() ? 0 : row["failed_transactions"].convert<int>());
+
+            analysis.set("pending_transactions", 
+                row["pending_transactions"].isEmpty() ? 0 : row["pending_transactions"].convert<int>());
+
+            analysis.set("success_rate", 
+                row["success_rate"].isEmpty() ? 0.0 : row["success_rate"].convert<double>());
+
             jsonArray.add(analysis);
         }
     }
@@ -1295,20 +1231,27 @@ Poco::JSON::Array OrderPaymentRepository::getCustomerPaymentHistory(long long cu
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object history;
-            history.set("id", rs.value("id", 0).convert<long long>());
-            history.set("payment_method", rs.value("payment_method").convert<std::string>());
-            history.set("payment_status", rs.value("payment_status").convert<std::string>());
-            history.set("amount", rs.value("amount", 0.0).convert<double>());
-            history.set("transaction_id", rs.value("transaction_id").isEmpty() ? "" : rs.value("transaction_id").convert<std::string>());
-            history.set("payment_date", rs.value("payment_date").isEmpty() ? "" : rs.value("payment_date").convert<std::string>());
-            history.set("created_at", rs.value("created_at").convert<std::string>());
-            history.set("order_number", rs.value("order_number").convert<std::string>());
-            history.set("customer_name", rs.value("customer_name").convert<std::string>());
-            history.set("order_total", rs.value("order_total", 0.0).convert<double>());
-            history.set("payment_type", rs.value("payment_type").convert<std::string>());
-            history.set("remaining_amount", rs.value("order_total", 0.0).convert<double>() - rs.value("amount", 0.0).convert<double>());
-            
+
+            history.set("id", row["id"].isEmpty() ? 0LL : row["id"].convert<Poco::Int64>());
+
+            history.set("payment_method", row["payment_method"].isEmpty() ? "" : row["payment_method"].convert<std::string>());
+            history.set("payment_status", row["payment_status"].isEmpty() ? "" : row["payment_status"].convert<std::string>());
+            history.set("transaction_id", row["transaction_id"].isEmpty() ? "" : row["transaction_id"].convert<std::string>());
+            history.set("payment_date",    row["payment_date"].isEmpty()    ? "" : row["payment_date"].convert<std::string>());
+            history.set("created_at",      row["created_at"].isEmpty()      ? "" : row["created_at"].convert<std::string>());
+            history.set("order_number",    row["order_number"].isEmpty()    ? "" : row["order_number"].convert<std::string>());
+            history.set("customer_name",   row["customer_name"].isEmpty()   ? "" : row["customer_name"].convert<std::string>());
+            history.set("payment_type",    row["payment_type"].isEmpty()    ? "" : row["payment_type"].convert<std::string>());
+
+            double amount = row["amount"].isEmpty() ? 0.0 : row["amount"].convert<double>();
+            double orderTotal = row["order_total"].isEmpty() ? 0.0 : row["order_total"].convert<double>();
+
+            history.set("amount", amount);
+            history.set("order_total", orderTotal);
+            history.set("remaining_amount", orderTotal - amount);
+
             jsonArray.add(history);
         }
     }
@@ -1392,8 +1335,11 @@ std::vector<std::pair<long long, std::string>> OrderPaymentRepository::getOrderP
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            long long orderId = rs.value("id", 0).convert<long long>();
-            std::string paymentStatus = rs.value("payment_status").isEmpty() ? "no_payment" : rs.value("payment_status").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+        
+            Poco::Int64 orderId = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            std::string paymentStatus = row["payment_status"].isEmpty() ? "no_payment" : row["payment_status"].convert<std::string>();
+        
             statuses.emplace_back(orderId, paymentStatus);
         }
     }
@@ -1408,15 +1354,31 @@ std::vector<std::pair<long long, std::string>> OrderPaymentRepository::getOrderP
 models::OrderPayment OrderPaymentRepository::mapRowToPayment(Poco::Data::Row& row) const
 {
     models::OrderPayment payment;
-    payment.id = row.get(0).convert<long long>();
-    payment.orderId = row.get(1).convert<long long>();
-    payment.paymentMethod = row.get(2).convert<std::string>();
-    payment.paymentStatus = row.get(3).convert<std::string>();
-    payment.amount = row.get(4).convert<double>();
-    payment.transactionId = row.get(5).convert<std::string>();
-    payment.paymentDate = row.get(6).convert<std::string>();
-    payment.createdAt = row.get(7).convert<std::string>();
-    
+
+    payment.id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+
+    payment.orderId = row["order_id"].isEmpty() ? 0 : row["order_id"].convert<Poco::Int64>();
+
+    payment.paymentMethod = row["payment_method"].isEmpty() ? "" : row["payment_method"].convert<std::string>();
+
+    payment.paymentStatus = row["payment_status"].isEmpty() ? "" : row["payment_status"].convert<std::string>();
+
+    payment.amount = row["amount"].isEmpty() ? 0.0 : row["amount"].convert<double>();
+
+    payment.createdAt = row["created_at"].isEmpty() ? "" : row["created_at"].convert<std::string>();
+
+    payment.orderTotal = row["order_total"].isEmpty() ? 0.0 : row["order_total"].convert<double>();
+
+    payment.orderNumber = row["order_number"].isEmpty() ? "" : row["order_number"].convert<std::string>();
+
+    payment.customerName = row["customer_name"].isEmpty() ? "" : row["customer_name"].convert<std::string>();
+
+    if (!row["transaction_id"].isEmpty())
+        payment.transactionId = row["transaction_id"].convert<std::string>();
+
+    if (!row["payment_date"].isEmpty())
+        payment.paymentDate = row["payment_date"].convert<std::string>();
+
     return payment;
 }
 

@@ -39,6 +39,8 @@ public:
     WarehouseCellServiceResult updateCell(long long cellId, const database::models::WarehouseCell& updatedCell, long long updatedBy = 0);
     WarehouseCellServiceResult blockCell(long long cellId, long long blockedBy = 0);
     WarehouseCellServiceResult unblockCell(long long cellId, long long unblockedBy = 0);
+    WarehouseCellServiceResult clearCell(long long cellId, long long clearedBy = 0);
+    WarehouseCellServiceResult deleteCell(long long cellId, long long deletedBy = 0);
     
     Poco::JSON::Array getAvailableCells(double requiredVolume, double requiredWeight);
     Poco::JSON::Array getCellsByZone(const std::string& zone);

@@ -101,14 +101,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findAll()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -143,14 +163,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findPaginated
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+
             categories.push_back(std::move(category));
         }
     }
@@ -222,31 +262,29 @@ bool CategoryRepository::update(long long id, const models::Category& category)
     try
     {
         beginTransaction(*connection);
+
+        models::Category categoryCopy = category;
         
-        std::string nameCopy = category.name;
-        std::string descriptionCopy = category.description;
-        long long parentIdCopy = category.parentId;
-        int sortOrderCopy = category.sortOrder;
         long long idCopy = id;
         
         Poco::Data::Statement update(connection->getSession());
-        if (parentIdCopy > 0)
+        if (!categoryCopy.parentId.isNull() && categoryCopy.parentId.value() > 0)
         {
             update << "UPDATE " << TABLE_NAME << " SET "
                       "name = $1, description = $2, parent_id = $3, sort_order = $4 WHERE id = $5",
-                Poco::Data::Keywords::use(nameCopy),
-                Poco::Data::Keywords::use(descriptionCopy),
-                Poco::Data::Keywords::use(parentIdCopy),
-                Poco::Data::Keywords::use(sortOrderCopy),
+                Poco::Data::Keywords::use(categoryCopy.name),
+                Poco::Data::Keywords::use(categoryCopy.description),
+                Poco::Data::Keywords::use(categoryCopy.parentId),
+                Poco::Data::Keywords::use(categoryCopy.sortOrder),
                 Poco::Data::Keywords::use(id);
         }
         else
         {
             update << "UPDATE " << TABLE_NAME << " SET "
                       "name = $1, description = $2, parent_id = NULL, sort_order = $3 WHERE id = $4",
-                Poco::Data::Keywords::use(nameCopy),
-                Poco::Data::Keywords::use(descriptionCopy),
-                Poco::Data::Keywords::use(sortOrderCopy),
+                Poco::Data::Keywords::use(categoryCopy.name),
+                Poco::Data::Keywords::use(categoryCopy.description),
+                Poco::Data::Keywords::use(categoryCopy.sortOrder),
                 Poco::Data::Keywords::use(id);
         }
         
@@ -425,16 +463,36 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findByField(
         
         Poco::Data::RecordSet rs(select);
         
-        for (size_t i = 0; i <rs.rowCount(); ++i)
+        for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -467,14 +525,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::search(
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -503,14 +581,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findRootCateg
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = 0;
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -541,14 +639,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findChildCate
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -580,14 +698,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findCategorie
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -619,14 +757,34 @@ std::vector<std::unique_ptr<models::Category>> CategoryRepository::findLeafCateg
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
+        
             auto category = std::make_unique<models::Category>();
-            category->id = rs.value("id").isEmpty() ? 0 : rs.value("id").convert<long long>();
-            category->name = rs.value("name").isEmpty() ? "" : rs.value("name").convert<std::string>();
-            category->description = rs.value("description").isEmpty() ? "" : rs.value("description").convert<std::string>();
-            category->parentId = getParentIdFromVar(rs.value("parent_id"));
-            category->path = rs.value("path").isEmpty() ? "" : rs.value("path").convert<std::string>();
-            category->sortOrder = rs.value("sort_order").isEmpty() ? 0 : rs.value("sort_order").convert<int>();
-            category->createdAt = rs.value("created_at").isEmpty() ? "" : rs.value("created_at").convert<std::string>();
+        
+            category->id = row["id"].isEmpty() ? 0 : row["id"].convert<Poco::Int64>();
+            category->name = row["name"].isEmpty() ? "" : row["name"].convert<std::string>();
+            category->sortOrder = row["sort_order"].isEmpty() ? 0 : row["sort_order"].convert<int>();
+        
+            if (!row["description"].isEmpty())
+                category->description = row["description"].convert<std::string>();
+            else
+                category->description.clear();
+        
+            if (!row["parent_id"].isEmpty())
+                category->parentId = row["parent_id"].convert<Poco::Int64>();
+            else
+                category->parentId.clear();
+        
+            if (!row["path"].isEmpty())
+                category->path = row["path"].convert<std::string>();
+            else
+                category->path.clear();
+        
+            if (!row["created_at"].isEmpty())
+                category->createdAt = row["created_at"].convert<std::string>();
+            else
+                category->createdAt.clear();
+        
             categories.push_back(std::move(category));
         }
     }
@@ -844,15 +1002,33 @@ bool CategoryRepository::hasChildren(long long categoryId)
 std::vector<long long> CategoryRepository::getCategoryAndSubcategoryIds(long long categoryId)
 {
     std::vector<long long> categoryIds;
-    categoryIds.push_back(categoryId);
+    std::set<long long> visited;
+    std::stack<long long> stack;
     
-    auto children = findChildCategories(categoryId);
-    for (const auto& child : children)
+    stack.push(categoryId);
+    
+    while (!stack.empty())
     {
-        if (child)
+        long long currentId = stack.top();
+        stack.pop();
+        
+        if (visited.find(currentId) != visited.end())
         {
-            auto childIds = getCategoryAndSubcategoryIds(child->id);
-            categoryIds.insert(categoryIds.end(), childIds.begin(), childIds.end());
+            std::cerr << "Warning: Cycle detected in category hierarchy at category ID: " 
+                      << currentId << std::endl;
+            continue;
+        }
+        
+        visited.insert(currentId);
+        categoryIds.push_back(currentId);
+        
+        auto children = findChildCategories(currentId);
+        for (const auto& child : children)
+        {
+            if (child && visited.find(child->id) == visited.end())
+            {
+                stack.push(child->id);
+            }
         }
     }
     

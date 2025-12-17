@@ -1,4 +1,3 @@
-// warehouse_backend/src/services/InventoryService.hpp
 #pragma once
 
 #include "../database/repositories/ProductBatchRepository.hpp"
@@ -72,6 +71,8 @@ public:
     StockCheckResult checkStockAvailability(long long productId, int quantity);
     StockCheckResult checkBatchAvailability(long long batchId, int quantity);
     
+    Poco::JSON::Array getMovements(int page = 1, int pageSize = 20, 
+                                   const std::map<std::string, std::string>& filters = {});
     Poco::JSON::Object getProductStockInfo(long long productId);
     Poco::JSON::Object getBatchStockInfo(long long batchId);
     Poco::JSON::Object getCellStockInfo(long long cellId);

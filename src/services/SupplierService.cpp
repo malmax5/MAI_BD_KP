@@ -586,4 +586,4 @@ std::unique_ptr<database::models::Supplier> SupplierService::enrichSupplierWithD
     }
 }
 
-} // namespace warehouse_backend::services
+} // namespace services

@@ -409,8 +409,13 @@ Poco::JSON::Object ShipmentService::getShipmentDetails(long long shipmentId)
                 Poco::JSON::Object orderInfo;
                 orderInfo.set("orderNumber", order->orderNumber);
                 orderInfo.set("customerName", order->customerName);
-                orderInfo.set("customerEmail", order->customerEmail);
-                orderInfo.set("customerPhone", order->customerPhone);
+
+                if (!order->customerEmail.isNull())
+                    orderInfo.set("customerEmail", order->customerEmail.value());
+                
+                if (!order->customerPhone.isNull())
+                    orderInfo.set("customerPhone", order->customerPhone.value());
+                
                 orderInfo.set("shippingAddress", order->shippingAddress);
                 orderInfo.set("status", database::models::CustomerOrder::statusToString(order->status));
                 

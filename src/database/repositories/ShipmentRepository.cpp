@@ -53,26 +53,8 @@ std::unique_ptr<models::Shipment> ShipmentRepository::findById(long long id)
         
         if (rs.rowCount() > 0)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(0);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             return shipment;
         }
@@ -107,26 +89,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findAll()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -168,26 +132,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findPaginated
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -340,7 +286,7 @@ int ShipmentRepository::count()
         Poco::Data::RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -406,26 +352,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findByField(
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -465,26 +393,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::search(
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -549,24 +459,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findByStatus(
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            shipment->status = status;
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -610,31 +504,13 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findByDateRan
         
         Poco::Data::RecordSet rs(select);
         
-        for (size_t i = 0; i < rs.rowCount(); ++i)
-        {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
-            
-            shipments.push_back(std::move(shipment));
-        }
+    for (size_t i = 0; i < rs.rowCount(); ++i)
+    {
+        Poco::Data::Row row = rs.row(i);
+        auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
+
+        shipments.push_back(std::move(shipment));
+    }
     }
     catch (const Poco::Exception& e)
     {
@@ -687,26 +563,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findCompleted
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -746,26 +604,8 @@ std::vector<std::unique_ptr<models::Shipment>> ShipmentRepository::findShipments
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            auto shipment = std::make_unique<models::Shipment>();
-            shipment->id = rs.value("id", 0).convert<long long>();
-            shipment->shipmentNumber = rs.value("shipment_number").convert<std::string>();
-            shipment->orderId = rs.value("order_id", 0).convert<long long>();
-            shipment->carrier = rs.value("carrier").convert<std::string>();
-            shipment->trackingNumber = rs.value("tracking_number").convert<std::string>();
-            shipment->shippingMethod = rs.value("shipping_method").convert<std::string>();
-            shipment->shippingCost = rs.value("shipping_cost", 0.0).convert<double>();
-            shipment->shipmentDate = rs.value("shipment_date").convert<std::string>();
-            shipment->estimatedArrival = rs.value("estimated_arrival").isEmpty() ? "" : rs.value("estimated_arrival").convert<std::string>();
-            shipment->actualArrival = rs.value("actual_arrival").isEmpty() ? "" : rs.value("actual_arrival").convert<std::string>();
-            
-            std::string statusStr = rs.value("status").convert<std::string>();
-            shipment->status = models::Shipment::stringToStatus(statusStr);
-            
-            shipment->notes = rs.value("notes").convert<std::string>();
-            shipment->weightTotal = rs.value("weight_total", 0.0).convert<double>();
-            shipment->dimensionsTotal = rs.value("dimensions_total").convert<std::string>();
-            shipment->orderNumber = rs.value("order_number").convert<std::string>();
-            shipment->customerName = rs.value("customer_name").convert<std::string>();
+            Poco::Data::Row row = rs.row(i);
+            auto shipment = std::make_unique<models::Shipment>(mapRowToShipment(row));
             
             shipments.push_back(std::move(shipment));
         }
@@ -1053,7 +893,7 @@ int ShipmentRepository::countByStatus(models::ShipmentStatus status)
         Poco::Data::RecordSet rs(countStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0).convert<int>();
+            return rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -1124,20 +964,46 @@ double ShipmentRepository::getTotalShippingCost(const std::string& startDate, co
     
     try
     {
-        std::string startDateCopy = startDate;
-        std::string endDateCopy = endDate;
+        Poco::Nullable<std::string> startDateCopy;
+        Poco::Nullable<std::string> endDateCopy;
+
+        if (!startDate.empty())
+            startDateCopy = startDate;
         
+        if (!endDate.empty())
+            endDateCopy = endDate;
+
         Poco::Data::Statement sumStmt(connection->getSession());
-        sumStmt << "SELECT COALESCE(SUM(shipping_cost), 0) FROM " << TABLE_NAME 
-                << " WHERE shipment_date >= $1 AND shipment_date <= $2",
-            use(startDateCopy),
-            use(endDateCopy),
-            now;
-        
+
+        sumStmt << "SELECT COALESCE(SUM(shipping_cost), 0) FROM " << TABLE_NAME;
+        if (!startDateCopy.isNull() && !endDateCopy.isNull())
+        {
+            sumStmt << " WHERE shipment_date >= $1 AND shipment_date <= $2",
+                use(startDateCopy),
+                use(endDateCopy),
+                now;
+        }
+        else if (!startDateCopy.isNull() && endDateCopy.isNull())
+        {
+            sumStmt << " WHERE shipment_date >= $1",
+                use(startDateCopy),
+                now;
+        }
+        else if (startDateCopy.isNull() && !endDateCopy.isNull())
+        {
+            sumStmt << " WHERE shipment_date <= $1",
+                use(endDateCopy),
+                now;
+        }
+        else if (startDateCopy.isNull() && endDateCopy.isNull())
+        {
+            sumStmt.execute();
+        }
+
         Poco::Data::RecordSet rs(sumStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0.0).convert<double>();
+            return rs.value(0).isEmpty() ? 0.0 : rs.value(0).convert<double>();
         }
         
         return 0.0;
@@ -1161,7 +1027,7 @@ double ShipmentRepository::getAverageShippingCost()
         Poco::Data::RecordSet rs(avgStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0.0).convert<double>();
+            return rs.value(0).isEmpty() ? 0.0 : rs.value(0).convert<double>();
         }
         
         return 0.0;
@@ -1179,7 +1045,7 @@ int ShipmentRepository::getAverageTransitDays()
     try
     {
         Poco::Data::Statement avgStmt(connection->getSession());
-        avgStmt << "SELECT COALESCE(AVG(EXTRACT(DAY FROM (actual_arrival::date - shipment_date::date))), 0) "
+        avgStmt << "SELECT COALESCE(AVG(actual_arrival::date - shipment_date::date), 0) "
                 << "FROM " << TABLE_NAME << " "
                 << "WHERE status = 'delivered' AND actual_arrival IS NOT NULL",
             now;
@@ -1187,7 +1053,7 @@ int ShipmentRepository::getAverageTransitDays()
         Poco::Data::RecordSet rs(avgStmt);
         if (rs.rowCount() > 0)
         {
-            return rs.value(0, 0.0).convert<int>();
+            return rs.value(0).isEmpty() ? 0 : rs.value(0).convert<int>();
         }
         
         return 0;
@@ -1223,12 +1089,19 @@ Poco::JSON::Array ShipmentRepository::getShipmentStatistics()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object stats;
-            stats.set("status", rs.value("status").convert<std::string>());
-            stats.set("count", rs.value("count", 0).convert<int>());
-            stats.set("total_cost", rs.value("total_cost", 0.0).convert<double>());
-            stats.set("avg_cost", rs.value("avg_cost", 0.0).convert<double>());
-            
+
+            stats.set("status", row["status"].convert<std::string>());
+
+            int count = row["count"].isEmpty() ? 0 : row["count"].convert<int>();
+            double totalCost = row["total_cost"].isEmpty() ? 0.0 : row["total_cost"].convert<double>();
+            double avgCost = row["avg_cost"].isEmpty() ? 0.0 : row["avg_cost"].convert<double>();
+
+            stats.set("count", count);
+            stats.set("total_cost", totalCost);
+            stats.set("avg_cost", avgCost);
+
             jsonArray.add(stats);
         }
     }
@@ -1269,21 +1142,30 @@ Poco::JSON::Array ShipmentRepository::getCarrierPerformanceReport()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object report;
-            report.set("carrier", rs.value("carrier").convert<std::string>());
-            report.set("total_shipments", rs.value("total_shipments", 0).convert<int>());
-            report.set("delivered", rs.value("delivered", 0).convert<int>());
-            report.set("delayed", rs.value("delayed", 0).convert<int>());
-            report.set("returned", rs.value("returned", 0).convert<int>());
-            report.set("total_cost", rs.value("total_cost", 0.0).convert<double>());
-            report.set("avg_cost", rs.value("avg_cost", 0.0).convert<double>());
-            report.set("avg_transit_days", rs.value("avg_transit_days", 0).convert<int>());
-            
-            int delivered = rs.value("delivered", 0).convert<int>();
-            int total = rs.value("total_shipments", 0).convert<int>();
-            double deliveryRate = total > 0 ? (static_cast<double>(delivered) / total) * 100 : 0;
+
+            report.set("carrier", row["carrier"].convert<std::string>());
+
+            int totalShipments = row["total_shipments"].isEmpty() ? 0 : row["total_shipments"].convert<int>();
+            int delivered = row["delivered"].isEmpty() ? 0 : row["delivered"].convert<int>();
+            int delayed = row["delayed"].isEmpty() ? 0 : row["delayed"].convert<int>();
+            int returned = row["returned"].isEmpty() ? 0 : row["returned"].convert<int>();
+            double totalCost = row["total_cost"].isEmpty() ? 0.0 : row["total_cost"].convert<double>();
+            double avgCost = row["avg_cost"].isEmpty() ? 0.0 : row["avg_cost"].convert<double>();
+            int avgTransitDays = row["avg_transit_days"].isEmpty() ? 0 : row["avg_transit_days"].convert<int>();
+
+            report.set("total_shipments", totalShipments);
+            report.set("delivered", delivered);
+            report.set("delayed", delayed);
+            report.set("returned", returned);
+            report.set("total_cost", totalCost);
+            report.set("avg_cost", avgCost);
+            report.set("avg_transit_days", avgTransitDays);
+
+            double deliveryRate = totalShipments > 0 ? (static_cast<double>(delivered) / totalShipments) * 100.0 : 0.0;
             report.set("delivery_rate", deliveryRate);
-            
+
             jsonArray.add(report);
         }
     }
@@ -1324,15 +1206,24 @@ Poco::JSON::Array ShipmentRepository::getShippingCostAnalysis(const std::string&
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             Poco::JSON::Object analysis;
-            analysis.set("shipping_method", rs.value("shipping_method").convert<std::string>());
-            analysis.set("carrier", rs.value("carrier").convert<std::string>());
-            analysis.set("shipment_count", rs.value("shipment_count", 0).convert<int>());
-            analysis.set("total_cost", rs.value("total_cost", 0.0).convert<double>());
-            analysis.set("avg_cost", rs.value("avg_cost", 0.0).convert<double>());
-            analysis.set("min_cost", rs.value("min_cost", 0.0).convert<double>());
-            analysis.set("max_cost", rs.value("max_cost", 0.0).convert<double>());
-            
+        
+            analysis.set("shipping_method", row["shipping_method"].isEmpty() ? "" : row["shipping_method"].convert<std::string>());
+            analysis.set("carrier", row["carrier"].isEmpty() ? "" : row["carrier"].convert<std::string>());
+        
+            int shipmentCount = row["shipment_count"].isEmpty() ? 0 : row["shipment_count"].convert<int>();
+            double totalCost  = row["total_cost"].isEmpty()   ? 0.0 : row["total_cost"].convert<double>();
+            double avgCost    = row["avg_cost"].isEmpty()     ? 0.0 : row["avg_cost"].convert<double>();
+            double minCost    = row["min_cost"].isEmpty()     ? 0.0 : row["min_cost"].convert<double>();
+            double maxCost    = row["max_cost"].isEmpty()     ? 0.0 : row["max_cost"].convert<double>();
+        
+            analysis.set("shipment_count", shipmentCount);
+            analysis.set("total_cost", totalCost);
+            analysis.set("avg_cost", avgCost);
+            analysis.set("min_cost", minCost);
+            analysis.set("max_cost", maxCost);
+        
             jsonArray.add(analysis);
         }
     }
@@ -1388,9 +1279,10 @@ std::vector<std::pair<long long, std::string>> ShipmentRepository::getActiveShip
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
+            Poco::Data::Row row = rs.row(i);
             result.emplace_back(
-                rs.value("id", 0).convert<long long>(),
-                rs.value("shipment_number").convert<std::string>()
+                row["id"].isEmpty() ? 0LL : row["id"].convert<Poco::Int64>(),
+                row["shipment_number"].convert<std::string>()
             );
         }
     }
@@ -1418,7 +1310,8 @@ std::vector<std::string> ShipmentRepository::getUniqueCarriers()
         
         for (size_t i = 0; i < rs.rowCount(); ++i)
         {
-            carriers.push_back(rs.value("carrier").convert<std::string>());
+            Poco::Data::Row row = rs.row(i);
+            carriers.push_back(row["carrier"].convert<std::string>());
         }
     }
     catch (const Poco::Exception& e)
@@ -1432,24 +1325,43 @@ std::vector<std::string> ShipmentRepository::getUniqueCarriers()
 models::Shipment ShipmentRepository::mapRowToShipment(Poco::Data::Row& row) const
 {
     models::Shipment shipment;
-    shipment.id = row.get(0).convert<long long>();
-    shipment.shipmentNumber = row.get(1).convert<std::string>();
-    shipment.orderId = row.get(2).convert<long long>();
-    shipment.carrier = row.get(3).convert<std::string>();
-    shipment.trackingNumber = row.get(4).convert<std::string>();
-    shipment.shippingMethod = row.get(5).convert<std::string>();
-    shipment.shippingCost = row.get(6).convert<double>();
-    shipment.shipmentDate = row.get(7).convert<std::string>();
-    shipment.estimatedArrival = row.get(8).convert<std::string>();
-    shipment.actualArrival = row.get(9).convert<std::string>();
-    
-    std::string statusStr = row.get(10).convert<std::string>();
+
+    shipment.id = row["id"].convert<Poco::Int64>();
+    shipment.shipmentNumber = row["shipment_number"].convert<std::string>();
+    shipment.orderId = row["order_id"].convert<Poco::Int64>();
+    shipment.carrier = row["carrier"].convert<std::string>();
+    shipment.shipmentDate = row["shipment_date"].convert<std::string>();
+
+    std::string statusStr = row["status"].convert<std::string>();
     shipment.status = models::Shipment::stringToStatus(statusStr);
-    
-    shipment.notes = row.get(11).convert<std::string>();
-    shipment.weightTotal = row.get(12).convert<double>();
-    shipment.dimensionsTotal = row.get(13).convert<std::string>();
-    
+
+    shipment.orderNumber = row["order_number"].convert<std::string>();
+    shipment.customerName = row["customer_name"].convert<std::string>();
+
+    if (!row["tracking_number"].isEmpty())
+        shipment.trackingNumber = row["tracking_number"].convert<std::string>();
+
+    if (!row["shipping_method"].isEmpty())
+        shipment.shippingMethod = row["shipping_method"].convert<std::string>();
+
+    if (!row["estimated_arrival"].isEmpty())
+        shipment.estimatedArrival = row["estimated_arrival"].convert<std::string>();
+
+    if (!row["actual_arrival"].isEmpty())
+        shipment.actualArrival = row["actual_arrival"].convert<std::string>();
+
+    if (!row["notes"].isEmpty())
+        shipment.notes = row["notes"].convert<std::string>();
+
+    if (!row["dimensions_total"].isEmpty())
+        shipment.dimensionsTotal = row["dimensions_total"].convert<std::string>();
+
+    if (!row["shipping_cost"].isEmpty())
+        shipment.shippingCost = row["shipping_cost"].convert<double>();
+
+    if (!row["weight_total"].isEmpty())
+        shipment.weightTotal = row["weight_total"].convert<double>();
+
     return shipment;
 }
 

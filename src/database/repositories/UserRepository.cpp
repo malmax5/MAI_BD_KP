@@ -134,19 +134,14 @@ long long UserRepository::create(const models::User& user)
 
     try
     {
-        std::string username = user.username;
-        std::string passwordHash = user.passwordHash;
-        std::string fullName = user.fullName;
-        std::string email = user.email;
-        std::string roleStr = models::User::roleToString(user.role);
-        bool isActive = user.isActive;
-        std::string phoneNumber = user.phoneNumber;
+        models::User userCopy = user;
+        std::string roleStr = models::User::roleToString(userCopy.role);
         
         {
             Statement check(connection->getSession());
             check << "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE username = $1 OR email = $2",
-                use(username),
-                use(email),
+                use(userCopy.username),
+                use(userCopy.email),
                 now;
             
             RecordSet rs(check);
@@ -166,13 +161,13 @@ long long UserRepository::create(const models::User& user)
         
         insert << "INSERT INTO " + TABLE_NAME + " (username, password_hash, full_name, email, role, is_active, phone_number) "
                << "VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
-            use(username),
-            use(passwordHash),
-            use(fullName),
-            use(email),
+            use(userCopy.username),
+            use(userCopy.passwordHash),
+            use(userCopy.fullName),
+            use(userCopy.email),
             use(roleStr),
-            use(isActive),
-            use(phoneNumber),
+            use(userCopy.isActive),
+            use(userCopy.phoneNumber),
             into(id),
             now;
         

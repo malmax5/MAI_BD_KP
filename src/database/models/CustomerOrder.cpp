@@ -28,33 +28,40 @@ CustomerOrder::CustomerOrder(const Poco::JSON::Object& json)
 {
     orderNumber = JsonUtils::getString(json, "order_number", "");
     customerName = JsonUtils::getString(json, "customer_name", "");
-    customerEmail = JsonUtils::getString(json, "customer_email", "");
-    customerPhone = JsonUtils::getString(json, "customer_phone", "");
     shippingAddress = JsonUtils::getString(json, "shipping_address", "");
     orderDate = JsonUtils::getString(json, "order_date", "");
-    
+
     std::string statusStr = JsonUtils::getString(json, "status", "new");
     status = stringToStatus(statusStr);
-    
+
     totalAmount = JsonUtils::getDouble(json, "total_amount", 0.0);
-    
+
     std::string priorityStr = JsonUtils::getString(json, "priority", "normal");
     priority = stringToPriority(priorityStr);
-    
-    notes = JsonUtils::getString(json, "notes", "");
-    estimatedDeliveryDate = JsonUtils::getString(json, "estimated_delivery_date", "");
-    actualDeliveryDate = JsonUtils::getString(json, "actual_delivery_date", "");
-    createdBy = JsonUtils::getInt(json, "created_by", 0);
-    
-    if (json.has("id"))
-    {
-        id = JsonUtils::getInt(json, "id", 0);
-    }
-    
-    if (json.has("created_by_name"))
-    {
-        createdByName = JsonUtils::getString(json, "created_by_name", "");
-    }
+
+    createdBy = static_cast<Poco::Int64>(JsonUtils::getInt(json, "created_by", 0));
+
+    createdByName = JsonUtils::getString(json, "created_by_name", "");
+
+    if (json.has("customer_email") && !json.isNull("customer_email"))
+        customerEmail = JsonUtils::getString(json, "customer_email", "");
+
+    if (json.has("customer_phone") && !json.isNull("customer_phone"))
+        customerPhone = JsonUtils::getString(json, "customer_phone", "");
+
+    if (json.has("notes") && !json.isNull("notes"))
+        notes = JsonUtils::getString(json, "notes", "");
+
+    if (json.has("estimated_delivery_date") && !json.isNull("estimated_delivery_date"))
+        estimatedDeliveryDate = JsonUtils::getString(json, "estimated_delivery_date", "");
+
+    if (json.has("actual_delivery_date") && !json.isNull("actual_delivery_date"))
+        actualDeliveryDate = JsonUtils::getString(json, "actual_delivery_date", "");
+
+    if (json.has("id") && !json.isNull("id"))
+        id = static_cast<Poco::Int64>(JsonUtils::getInt(json, "id", 0));
+    else
+        id = 0;
 }
 
 Poco::JSON::Object CustomerOrder::toJson() const
@@ -71,12 +78,12 @@ Poco::JSON::Object CustomerOrder::toJson() const
     
     if (!customerEmail.isNull())
     {
-        json.set("customer_email", customerEmail);
+        json.set("customer_email", customerEmail.value());
     }
     
     if (!customerPhone.isNull())
     {
-        json.set("customer_phone", customerPhone);
+        json.set("customer_phone", customerPhone.value());
     }
     
     json.set("shipping_address", shippingAddress);
@@ -87,17 +94,17 @@ Poco::JSON::Object CustomerOrder::toJson() const
     
     if (!notes.isNull())
     {
-        json.set("notes", notes);
+        json.set("notes", notes.value());
     }
     
     if (!estimatedDeliveryDate.isNull())
     {
-        json.set("estimated_delivery_date", estimatedDeliveryDate);
+        json.set("estimated_delivery_date", estimatedDeliveryDate.value());
     }
     
     if (!actualDeliveryDate.isNull())
     {
-        json.set("actual_delivery_date", actualDeliveryDate);
+        json.set("actual_delivery_date", actualDeliveryDate.value());
     }
     
     json.set("created_by", createdBy);

@@ -1107,8 +1107,34 @@ Poco::JSON::Array UserService::importUsers(const Poco::JSON::Array& usersArray,
             
             try
             {
-                auto userJson = usersArray.getObject(i);
-                database::models::User user = database::models::User::fromJson(*userJson);
+                database::models::User user;
+                auto userDynamicVar = usersArray.get(i);
+
+                const Poco::JSON::Object userJson = userDynamicVar.extract<const Poco::JSON::Object>();
+
+                if (userJson.has("id"))
+                {
+                    user.id = userJson.get("id").convert<Poco::Int64>();
+                }
+                
+                user.username = userJson.get("username").convert<std::string>();
+                user.fullName = userJson.get("full_name").convert<std::string>();
+                user.email = userJson.get("email").convert<std::string>();
+                user.role = database::models::User::stringToRole(userJson.get("role").convert<std::string>());
+                user.createdAt = Poco::DateTimeFormatter::format(utils::DateUtils::currentTimestamp(), Poco::DateTimeFormat::ISO8601_FORMAT);
+                user.passwordHash = userJson.get("password_hash").convert<std::string>();
+                
+                if (userJson.has("last_login"))
+                {
+                    user.lastLogin= userJson.get("last_login").convert<std::string>();
+                }
+                
+                user.isActive = userJson.get("is_active").convert<bool>();
+                
+                if (userJson.has("phone_number"))
+                {
+                    user.phoneNumber= userJson.get("phone_number").convert<std::string>();
+                }
                 
                 auto createResult = createUser(user, importedBy, ipAddress, userAgent);
                 
@@ -1239,9 +1265,12 @@ Poco::JSON::Object UserService::getPaginatedUsers(int page, int pageSize)
         for (auto& user : users)
         {
             auto enrichedUser = enrichUserWithDetails(std::move(user));
-            usersArray.add(enrichedUser->toJson());
+
+            Poco::JSON::Object enrichedUserJson = enrichedUser->toJson();
+
+            usersArray.add(enrichedUserJson);
         }
-        
+
         result.set("users", usersArray);
         result.set("pagination", createPaginationMetadata(page, pageSize, totalUsers));
     }
@@ -1666,4 +1695,4 @@ Poco::JSON::Object UserService::createPaginationMetadata(int page, int pageSize,
     return pagination;
 }
 
-}
+} // namespace services
