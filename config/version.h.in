@@ -1,0 +1,14 @@
+#pragma once
+
+#define PROJECT_NAME "@PROJECT_NAME@"
+#define PROJECT_VERSION "@PROJECT_VERSION@"
+#define PROJECT_DESCRIPTION "@PROJECT_DESCRIPTION@"
+
+#define BUILD_DATE __DATE__
+#define BUILD_TIME __TIME__
+
+#ifdef DEBUG
+#define BUILD_TYPE "Debug"
+#else
+#define BUILD_TYPE "Release"
+#endif

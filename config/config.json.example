@@ -1,0 +1,144 @@
+{
+    "application": {
+        "name": "Warehouse Management System",
+        "version": "1.0.0",
+        "environment": "development"
+    },
+    
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "database": "warehouse_db",
+        "user": "warehouse_user",
+        "password": "warehouse_password_123",
+        "connection_timeout": 30,
+        "pool_size": 10,
+        "max_connections": 20,
+        "min_connections": 5,
+        "connection_lifetime": 300,
+        "ssl_mode": "disable"
+    },
+    
+    "server": {
+        "port": 8080,
+        "host": "0.0.0.0",
+        "max_threads": 16,
+        "max_queued": 100,
+        "timeout": 30,
+        "keep_alive": true,
+        "keep_alive_timeout": 10,
+        "max_request_size": 10485760,
+        "compression": true,
+        "cors_allowed_origins": ["http://localhost:3000", "http://localhost:8081"]
+    },
+    
+    "security": {
+        "jwt_secret": "supersecret_jwt_key_change_in_production_123!@#",
+        "token_expiry_hours": 24,
+        "refresh_token_expiry_days": 7,
+        "bcrypt_cost": 12,
+        "password_min_length": 8,
+        "password_require_uppercase": true,
+        "password_require_lowercase": true,
+        "password_require_digits": true,
+        "password_require_special": true,
+        "rate_limit_per_minute": 60,
+        "max_login_attempts": 5,
+        "lockout_duration_minutes": 15
+    },
+    
+    "logging": {
+        "level": "info",
+        "console": {
+            "enabled": true,
+            "pattern": "%Y-%m-%d %H:%M:%S [%p] %t"
+        },
+        "file": {
+            "enabled": true,
+            "path": "logs/warehouse.log",
+            "rotation": "daily",
+            "max_size_mb": 100,
+            "max_files": 10,
+            "compress": true
+        },
+        "database": {
+            "enabled": false,
+            "table": "system_logs"
+        }
+    },
+    
+    "inventory": {
+        "default_page_size": 50,
+        "max_page_size": 1000,
+        "auto_reorder_enabled": true,
+        "reorder_threshold_percent": 20,
+        "expiration_warning_days": 30,
+        "batch_tracking_enabled": true,
+        "serial_number_tracking": false
+    },
+    
+    "orders": {
+        "auto_assign_picker": true,
+        "default_priority": "normal",
+        "max_items_per_order": 100,
+        "allow_backorders": false,
+        "default_shipping_method": "standard"
+    },
+    
+    "cache": {
+        "enabled": true,
+        "type": "memory",
+        "ttl_seconds": 300,
+        "max_size_mb": 100,
+        "redis": {
+            "host": "localhost",
+            "port": 6379,
+            "password": "",
+            "database": 0
+        }
+    },
+    
+    "audit": {
+        "enabled": true,
+        "log_user_actions": true,
+        "log_data_changes": true,
+        "retention_days": 365,
+        "sensitive_fields": ["password", "password_hash", "token", "secret"]
+    },
+    
+    "monitoring": {
+        "enabled": true,
+        "port": 9090,
+        "metrics_enabled": true,
+        "health_check_enabled": true,
+        "prometheus_endpoint": "/metrics"
+    },
+    
+    "notifications": {
+        "email": {
+            "enabled": false,
+            "smtp_server": "smtp.gmail.com",
+            "smtp_port": 587,
+            "username": "",
+            "password": "",
+            "from_address": "noreply@warehouse.com",
+            "use_tls": true
+        },
+        "sms": {
+            "enabled": false,
+            "provider": "twilio",
+            "account_sid": "",
+            "auth_token": "",
+            "from_number": ""
+        }
+    },
+    
+    "api": {
+        "version": "v1",
+        "base_path": "/api/v1",
+        "swagger_enabled": true,
+        "swagger_path": "/api/docs",
+        "rate_limiting_enabled": true,
+        "request_timeout_seconds": 30
+    }
+}
